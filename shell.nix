@@ -13,6 +13,7 @@ in
     buildInputs = [
       pkgs.openjdk
       pkgs.gcc
+      pkgs.clang-tools
     ];
     shellHook = ''
       export NIX_ENV=dev

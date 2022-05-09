@@ -14,11 +14,11 @@ Install dependencies with nix or manually (java, gcc).
 nix-shell
 
 #To regenerate header and class file (required after updating java file)
-javac -h . org/cooklang/jni/Parser.java
+javac -h . org/cooklang/*.java
 
 # Compile C sources
 gcc -c -fPIC -I${JAVA_HOME}/include -I${JAVA_HOME}/include/darwin \
-	org_cooklang_jni_Parser.c \
+	org_cooklang_Parser.c \
 	cooklang-c/src/CooklangParser.c \
 	cooklang-c/src/LinkedListLib.c \
 	cooklang-c/src/CooklangRecipe.c \
@@ -26,7 +26,7 @@ gcc -c -fPIC -I${JAVA_HOME}/include -I${JAVA_HOME}/include/darwin \
 
 # Make dynamic library
 gcc -dynamiclib -o libcooklang.dylib \
-	org_cooklang_jni_Parser.o \
+	org_cooklang_Parser.o \
 	Cooklang.tab.o \
 	CooklangParser.o \
 	CooklangRecipe.o \
