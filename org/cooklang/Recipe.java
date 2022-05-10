@@ -4,7 +4,6 @@ import java.util.*;
 
 public class Recipe {    
     public List<Step> steps = new ArrayList<>();
-    // public List<Equipment> equipment = new ArrayList<>();
     // public metadata[]: [String: String] = [:]
 
     public void addStep(Step step) {
@@ -22,7 +21,7 @@ public class Recipe {
 
             // if not the last item
             if (i != steps.size() - 1) {
-                sb.append(",");
+                sb.append("\n");
             }
 
         }

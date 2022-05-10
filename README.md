@@ -38,3 +38,7 @@ gcc -dynamiclib -o libcooklang.dylib \
 
 	java -Djava.library.path=$PWD Test.java
 
+
+Get methods signatures
+
+	javap -s -p org.cooklang.Recipe

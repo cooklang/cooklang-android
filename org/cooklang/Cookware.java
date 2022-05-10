@@ -1,8 +1,6 @@
 package org.cooklang;
 
-public class Timer implements DirectionItem {
-    public Quantity quantity;
-    public String units;
+public class Cookware implements DirectionItem {
     public String name;
 
     public void setName(String newName) {
