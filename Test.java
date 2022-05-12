@@ -2,6 +2,11 @@ import org.cooklang.Parser;
 
 public class Test {
     public static void main(String[] args) {
-        System.out.println("Parsed: " + Parser.parseRecipe("Slice @bacon{1%piece} and things"));
+        String text = """
+        >> cooking time: 30 min
+
+        Add @chilli{3}, @ginger{10%g} and @milk{1%litre} place in #oven and cook for ~{10%minutes}
+        """;
+        System.out.println(Parser.parseRecipe(text));
     }
 }

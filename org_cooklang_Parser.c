@@ -40,8 +40,13 @@ Java_org_cooklang_Parser_parseRecipe(JNIEnv *env, jclass, jstring content) {
   jmethodID setIngredientUnits = (*env)->GetMethodID(env, ingredientClass, "setUnits", "(Ljava/lang/String;)V");
 
   jmethodID setTimerName = (*env)->GetMethodID(env, timerClass, "setName", "(Ljava/lang/String;)V");
+  jmethodID setTimerQuantityString = (*env)->GetMethodID(env, timerClass, "setQuantityString", "(Ljava/lang/String;)V");
+  jmethodID setTimerQuantityFloat = (*env)->GetMethodID(env, timerClass, "setQuantityFloat", "(Ljava/lang/Float;)V");
+  jmethodID setTimerUnits = (*env)->GetMethodID(env, timerClass, "setUnits", "(Ljava/lang/String;)V");
 
   jmethodID setCookwareName = (*env)->GetMethodID(env, cookwareClass, "setName", "(Ljava/lang/String;)V");
+  jmethodID setCookwareQuantityString = (*env)->GetMethodID(env, cookwareClass, "setQuantityString", "(Ljava/lang/String;)V");
+  jmethodID setCookwareQuantityFloat = (*env)->GetMethodID(env, cookwareClass, "setQuantityFloat", "(Ljava/lang/Float;)V");
 
   jobject step;
   jobject textItem;
@@ -128,6 +133,27 @@ Java_org_cooklang_Parser_parseRecipe(JNIEnv *env, jclass, jstring content) {
             (*env)->CallVoidMethod(env, timer, setTimerName, _string);
           }
 
+          // quantity
+          if (currentDirection->quantityString == NULL) {
+            if (currentDirection->quantity != -1) {
+              (*env)->CallVoidMethod(env, timer, setTimerQuantityFloat, currentDirection->quantity);
+            } else {
+              _string=(*env)->NewStringUTF(env, "");
+              (*env)->CallVoidMethod(env, timer, setTimerQuantityString, _string);
+            }
+          } else {
+            _string=(*env)->NewStringUTF(env, currentDirection->quantityString);
+            (*env)->CallVoidMethod(env, timer, setTimerQuantityString, _string);
+          }
+
+          // units
+          if (currentDirection->unit == NULL) {
+            _string=(*env)->NewStringUTF(env, "");
+          } else {
+            _string=(*env)->NewStringUTF(env, currentDirection->unit);
+          }
+          (*env)->CallVoidMethod(env, timer, setTimerUnits, _string);
+
           (*env)->CallVoidMethod(env, step, addTimer, timer);
 
         // COOKWARE
@@ -137,6 +163,19 @@ Java_org_cooklang_Parser_parseRecipe(JNIEnv *env, jclass, jstring content) {
           // name
           _string=(*env)->NewStringUTF(env, currentDirection->value);
           (*env)->CallVoidMethod(env, cookware, setCookwareName, _string);
+
+          // quantity
+          if (currentDirection->quantityString == NULL) {
+            if (currentDirection->quantity != -1) {
+              (*env)->CallVoidMethod(env, cookware, setCookwareQuantityFloat, currentDirection->quantity);
+            } else {
+              _string=(*env)->NewStringUTF(env, "");
+              (*env)->CallVoidMethod(env, cookware, setCookwareQuantityString, _string);
+            }
+          } else {
+            _string=(*env)->NewStringUTF(env, currentDirection->quantityString);
+            (*env)->CallVoidMethod(env, cookware, setCookwareQuantityString, _string);
+          }
 
           (*env)->CallVoidMethod(env, step, addCookware, cookware);
 
