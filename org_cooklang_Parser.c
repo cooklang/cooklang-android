@@ -24,8 +24,8 @@ Java_org_cooklang_Parser_parseRecipe(JNIEnv *env, jclass, jstring content) {
   jclass    timerClass = (*env)->FindClass(env, "org/cooklang/Timer");
   jmethodID timerConstructor = (*env)->GetMethodID(env, timerClass, "<init>", "()V");
 
-  jobject recipe = (*env)->NewObject(env, recipeClass, recipeConstructor);
   jmethodID addStep = (*env)->GetMethodID(env, recipeClass, "addStep", "(Lorg/cooklang/Step;)V");
+  jmethodID addMetadata = (*env)->GetMethodID(env, recipeClass, "addMetadata", "(Ljava/lang/String;Ljava/lang/String;)V");
 
   jmethodID addTextItem = (*env)->GetMethodID(env, stepClass, "addTextItem", "(Lorg/cooklang/TextItem;)V");
   jmethodID addIngredient = (*env)->GetMethodID(env, stepClass, "addIngredient", "(Lorg/cooklang/Ingredient;)V");
@@ -54,9 +54,13 @@ Java_org_cooklang_Parser_parseRecipe(JNIEnv *env, jclass, jstring content) {
   jobject timer;
   jobject cookware;
   jstring _string;
+  jstring _string2;
   jfloat _float;
 
+  jobject recipe = (*env)->NewObject(env, recipeClass, recipeConstructor);
+
   char *recipeString = (*env)->GetStringUTFChars(env, content, NULL);
+
   // TODO errors handling
   Recipe *parsedRecipe = parseRecipeString(recipeString);
 
@@ -66,10 +70,25 @@ Java_org_cooklang_Parser_parseRecipe(JNIEnv *env, jclass, jstring content) {
   ListIterator directionIterator;
   Direction *currentDirection;
 
-  int directionsTotal;
+  ListIterator metaDataIterator;
+  Metadata *currentMetaData;
+
+  metaDataIterator = createIterator(parsedRecipe->metaData);
+  currentMetaData = nextElement(&metaDataIterator);
+
+  while (currentMetaData != NULL) {
+    _string=(*env)->NewStringUTF(env, currentMetaData->identifier);
+    _string2=(*env)->NewStringUTF(env, currentMetaData->content);
+    (*env)->CallVoidMethod(env, recipe, addMetadata, _string, _string2);
+
+    // get the next one
+    currentMetaData = nextElement(&metaDataIterator);
+  }
 
   stepIterator = createIterator(parsedRecipe->stepList);
   currentStep = nextElement(&stepIterator);
+
+  int directionsTotal;
 
   while (currentStep != NULL) {
     directionsTotal = getLength(currentStep->directions);
@@ -78,8 +97,6 @@ Java_org_cooklang_Parser_parseRecipe(JNIEnv *env, jclass, jstring content) {
       directionIterator = createIterator(currentStep->directions);
       currentDirection = nextElement(&directionIterator);
       step = (*env)->NewObject(env, stepClass, stepConstructor);
-
-      (*env)->CallVoidMethod(env, recipe, addStep, step);
 
       while (currentDirection != NULL) {
 
@@ -186,6 +203,8 @@ Java_org_cooklang_Parser_parseRecipe(JNIEnv *env, jclass, jstring content) {
 
         currentDirection = nextElement(&directionIterator);
       }
+
+      (*env)->CallVoidMethod(env, recipe, addStep, step);
     }
 
     currentStep = nextElement(&stepIterator);

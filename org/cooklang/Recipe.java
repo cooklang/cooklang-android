@@ -4,16 +4,27 @@ import java.util.*;
 
 public class Recipe {    
     public List<Step> steps = new ArrayList<>();
-    // public metadata[]: [String: String] = [:]
+    public Hashtable<String, String> metadata = new Hashtable<String, String>();
 
     public void addStep(Step step) {
         steps.add(step);
+    }
+
+    public void addMetadata(String key, String value) {
+        metadata.put(key, value);
     }
 
     public String toString() {
         if (steps == null || steps.size() <= 0) return "";
 
         StringBuilder sb = new StringBuilder();
+
+        for (Map.Entry<String, String> entry : metadata.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+
+            sb.append(String.format(">> %s: %s\n", key, value));
+        }
 
         for (int i = 0; i < steps.size(); i++) {
 
