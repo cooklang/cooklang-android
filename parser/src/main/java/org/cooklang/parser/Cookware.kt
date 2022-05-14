@@ -1,24 +1,9 @@
-package org.cooklang.parser;
+package org.cooklang.parser
 
-public class Cookware implements DirectionItem {
-    public String name;
+import org.cooklang.parser.DirectionItem
 
-    private Float quantityFloat;
-    private String quantityString;
-
-    public void setQuantityFloat(Float newQuantity) {
-        this.quantityFloat = newQuantity;
-    }
-
-    public void setQuantityString(String newQuantity) {
-        this.quantityString = newQuantity;
-    }
-
-    public void setName(String newName) {
-        this.name = newName;
-    }
-
-    public String toString() {
-        return name;
-    }
-}
+data class Cookware(
+    var name: String? = null,
+    var quantityFloat: Float? = null,
+    var quantityString: String? = null
+) : DirectionItem

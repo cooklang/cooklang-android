@@ -1,4 +1,3 @@
-package org.cooklang.parser;
+package org.cooklang.parser
 
-public interface DirectionItem {
-}
+interface DirectionItem 

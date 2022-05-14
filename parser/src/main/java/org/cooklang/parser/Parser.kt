@@ -1,6 +1,11 @@
-package org.cooklang.parser;
+package org.cooklang.parser
 
-public class Parser {
-    static { System.loadLibrary("cooklang"); }
-    public static native Recipe parseRecipe(String text);
+import org.cooklang.parser.Recipe
+
+object Parser {
+    external fun parseRecipe(text: String?): Recipe?
+
+    init {
+        System.loadLibrary("cooklang")
+    }
 }

@@ -1,13 +1,5 @@
-package org.cooklang.parser;
+package org.cooklang.parser
 
-public class TextItem implements DirectionItem {
-    public String value;
+import org.cooklang.parser.DirectionItem
 
-    public void setValue(String newValue) {
-        this.value = newValue;
-    }
-
-    public String toString() {
-        return value;
-    }
-}
+data class TextItem(var value: String? = null) : DirectionItem
