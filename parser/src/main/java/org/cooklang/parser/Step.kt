@@ -1,37 +1,36 @@
-package org.cooklang.parser;
+package org.cooklang.parser
 
+import org.cooklang.parser.DirectionItem
+import org.cooklang.parser.TextItem
+import org.cooklang.parser.Ingredient
+import org.cooklang.parser.Cookware
+import java.lang.StringBuilder
+import java.util.ArrayList
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class Step {
-    public List<DirectionItem> directions = new ArrayList<>();
-
-    public void addTextItem(TextItem texItem) {
-        directions.add(texItem);
+class Step {
+    var directions: MutableList<DirectionItem> = mutableListOf()
+    fun addTextItem(texItem: TextItem) {
+        directions.add(texItem)
     }
 
-    public void addIngredient(Ingredient ingredient) {
-        directions.add(ingredient);
+    fun addIngredient(ingredient: Ingredient) {
+        directions.add(ingredient)
     }
 
-    public void addCookware(Cookware cookware) {
-        directions.add(cookware);
+    fun addCookware(cookware: Cookware) {
+        directions.add(cookware)
     }
 
-    public void addTimer(Timer timer) {
-        directions.add(timer);
+    fun addTimer(timer: Timer) {
+        directions.add(timer)
     }
 
-    public String toString() {
-        if (directions == null || directions.size() <= 0) return "";
-
-        StringBuilder sb = new StringBuilder();
-
-        for (int i = 0; i < directions.size(); i++) {
-            sb.append(directions.get(i).toString());
+    override fun toString(): String {
+        if (directions.size <= 0) return ""
+        val sb = StringBuilder()
+        directions.forEach {
+            sb.append(it.toString())
         }
-
-        return sb.toString();
+        return sb.toString()
     }
 }
