@@ -14,6 +14,6 @@ class ParserTest {
     @Test
     fun testParser() {
         val recipe = Parser.parseRecipe("Slice @bacon{1} and things")
-        assert(recipe.metadata.isNotEmpty())
+        assert(recipe!!.metadata!!.isNotEmpty())
     }
 }
