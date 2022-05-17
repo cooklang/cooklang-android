@@ -1,3 +1,5 @@
 package org.cooklang.parser
 
-interface DirectionItem 
+interface DirectionItem : Displayable {
+
+}

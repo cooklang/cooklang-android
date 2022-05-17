@@ -8,4 +8,7 @@ data class Timer(
     var quantityFloat: Float? = null,
     var quantityString: String? = null
 ) : DirectionItem {
+    override fun getDisplayString(): String {
+        return "$name ${quantityFloat?: quantityString?: ""} ${units ?: ""}"
+    }
 }

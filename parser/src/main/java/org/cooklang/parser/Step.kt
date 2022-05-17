@@ -7,8 +7,8 @@ import org.cooklang.parser.Cookware
 import java.lang.StringBuilder
 import java.util.ArrayList
 
-class Step {
-    var directions: MutableList<DirectionItem> = mutableListOf()
+class Step: Displayable {
+    val directions: MutableList<DirectionItem> = mutableListOf()
     fun addTextItem(texItem: TextItem) {
         directions.add(texItem)
     }
@@ -24,12 +24,14 @@ class Step {
     fun addTimer(timer: Timer) {
         directions.add(timer)
     }
+    val ingredients: List<Ingredient> get() = directions.filterIsInstance(Ingredient::class.java)
+    val cookware: List<Cookware> get() = directions.filterIsInstance(Cookware::class.java)
 
-    override fun toString(): String {
+    override fun getDisplayString(): String {
         if (directions.size <= 0) return ""
         val sb = StringBuilder()
         directions.forEach {
-            sb.append(it.toString())
+            sb.append(it.getDisplayString())
         }
         return sb.toString()
     }
