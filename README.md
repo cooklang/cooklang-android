@@ -1,44 +1,24 @@
-# How to run it
+# Cooklang Parser for Android
 
-Clone submodules
+## NOTE
+This project is in its early stages and the API's are VERY likely to change
+## How to use 
 
-	git submodule update --init --recursive
+1. In the target application declare a jitpack maven repository in your `settings.gradle` or root `build.gradle`: 
+```groovy
 
-
-### Build files
-
-Install dependencies with nix or manually (java, gcc).
-
-```
-# Enter nix-shell env with all deps preinstalled
-nix-shell
-
-#To regenerate header and class file (required after updating java file)
-javac -h . org/cooklang/*.java
-
-# Compile C sources
-gcc -c -fPIC -I${JAVA_HOME}/include -I${JAVA_HOME}/include/darwin \
-	org_cooklang_Parser.c \
-	cooklang-c/src/CooklangParser.c \
-	cooklang-c/src/LinkedListLib.c \
-	cooklang-c/src/CooklangRecipe.c \
-	cooklang-c/parserFiles/Cooklang.tab.c
-
-# Make dynamic library
-gcc -dynamiclib -o libcooklang.dylib \
-	org_cooklang_Parser.o \
-	Cooklang.tab.o \
-	CooklangParser.o \
-	CooklangRecipe.o \
-	LinkedListLib.o -lc
-
+repositories {
+    maven {
+        url "https://www.jitpack.io"
+    }
+}
 ```
 
-# Run test
+2. Add a dependency to you apps `build.gradle`: 
 
-	java -Djava.library.path=$PWD Test.java
-
-
-Get methods signatures
-
-	javap -s -p org.cooklang.Recipe
+```groovy
+dependencies {
+    implementation 'com.github.cooklang:cooklang-java:<version>'
+}
+```
+ Check out Releases tab for latest version
