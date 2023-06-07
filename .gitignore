@@ -13,3 +13,5 @@
 .externalNativeBuild
 .cxx
 local.properties
+rust_lib/target
+app/src/main/libs/

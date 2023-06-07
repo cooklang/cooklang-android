@@ -28,11 +28,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.google.android.material.textfield.TextInputEditText
 import org.cooklang.parser.ui.theme.CooklangParserTheme
+import uniffi.reverse.reverseString
+
 
 private val testRecipe = "Slice @bacon{1kg} and things" + "\n" +
         "Add @bacon{2kg} to @eggs"
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -40,6 +43,9 @@ class MainActivity : ComponentActivity() {
 
             var parsedRecipeString by remember { mutableStateOf<String>("") }
             var recipe by remember { mutableStateOf<Recipe?>(null)}
+            System.loadLibrary("reverse")
+
+            var title = uniffi.reverse.reverseString("Ingredients")
 
             CooklangParserTheme {
                 // A surface container using the 'background' color from the theme
@@ -64,7 +70,7 @@ class MainActivity : ComponentActivity() {
                         Text(text = "Parse!")
                     }
                     recipe?.let {
-                        Text(text = "Ingredients: ")
+                        Text(text = "$title: ")
                         it.ingredients.map {
                             Text(text = "${it.name} ${it.quantityFloat ?: it.quantityString}${it.units}")
                         }
