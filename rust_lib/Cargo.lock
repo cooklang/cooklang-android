@@ -159,7 +159,7 @@ checksum = "0b946244a988c390a94667ae0e3958411fa40cc46ea496a929b263d883f5f9c3"
 [[package]]
 name = "cooklang"
 version = "0.3.2"
-source = "git+https://github.com/cooklang/cooklang-rs?branch=uniffi-compatible#57229971816ca8c2bc4376d6181f03f089764da3"
+source = "git+https://github.com/cooklang/cooklang-rs?branch=uniffi-compatible#b1aa430d093f80a8442097f97373aea0e8530614"
 dependencies = [
  "ariadne",
  "bitflags",

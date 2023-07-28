@@ -3,9 +3,6 @@ namespace cooklang {
    Recipe parse([ByRef] string input, [ByRef] string recipe_name);
 };
 
-//[Custom]
-//typedef usize usize;
-
 [Error]
 enum CooklangError {
 "Parser",
@@ -13,7 +10,6 @@ enum CooklangError {
 "Io",
 "NoFilename",
 };
-
 
 dictionary Recipe {
 /// Recipe name
@@ -31,12 +27,14 @@ dictionary Recipe {
   sequence<Cookware> cookware;
 /// All the timers
   sequence<Timer> timers;
-/// All the inline quantities
-  sequence<Quantity> inline_quantities;
 //    pub(crate) data: D,
 };
 
-dictionary Metadata {};
+
+dictionary Metadata {
+        map
+};
+
 dictionary Section {
   string? name;
   sequence<Step> steps;
@@ -46,24 +44,22 @@ dictionary Ingredient {
   ///
   /// This can have the form of a path if the ingredient references a recipe.
   string name;
-  /// Alias
-  string? alias;
   /// Quantity
   Quantity? quantity;
   /// Note
   string? note;
+//  Modifiers modifiers;
 };
 dictionary Cookware {
   /// Name
   ///
   /// This can have the form of a path if the ingredient references a recipe.
   string name;
-  /// Alias
-  string? alias;
   /// Quantity
   QuantityValue? quantity;
   /// Note
   string? note;
+//  Modifiers modifiers;
 };
 dictionary Timer {
   /// Name
@@ -78,8 +74,17 @@ dictionary Timer {
 interface Item {
   Text(string value);
   ItemComponent(Component value);
-  InlineQuantity(usize value);
 };
+
+[Enum]
+interface Value {
+  Number(f64 value);
+  //        bullshit
+  Range(ValueRange value);
+  //        bullshit
+  Text(string value);
+};
+
 
 [Enum]
 interface QuantityValue {
@@ -88,22 +93,12 @@ interface QuantityValue {
   ByServings(sequence<Value> values);
 };
 
-[Enum]
-interface Value {
-  Number(f64 value);
-  //        bullshit
-  Range(RangeInclusiveFloat value);
-  //        bullshit
-  Text(string value);
-};
-
 dictionary QuantityUnit {
   string text;
 };
 
 dictionary Step {
   sequence<Item> items;
-  boolean is_text;
 };
 
 dictionary Quantity {
@@ -119,7 +114,6 @@ enum ComponentKind {
 
 dictionary Component {
   ComponentKind kind;
-  usize index;
 };
 
-dictionary RangeInclusiveFloat {};
+dictionary ValueRange {};
