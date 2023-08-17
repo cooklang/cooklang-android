@@ -14,4 +14,3 @@ dependencyResolutionManagement {
 }
 rootProject.name = "CooklangParser"
 include ':app'
-include ':parser'

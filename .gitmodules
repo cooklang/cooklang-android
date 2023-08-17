@@ -1,3 +1,0 @@
-[submodule "parser/src/main/cpp/cooklang-c"]
-	path = parser/src/main/cpp/cooklang-c
-	url = git@github.com:cooklang/cooklang-c.git

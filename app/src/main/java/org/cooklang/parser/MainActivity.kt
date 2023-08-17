@@ -28,7 +28,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.google.android.material.textfield.TextInputEditText
 import org.cooklang.parser.ui.theme.CooklangParserTheme
-import uniffi.reverse.reverseString
+import uniffi.cooklang.parse
+import uniffi.cooklang.CooklangRecipe
 
 
 private val testRecipe = "Slice @bacon{1kg} and things" + "\n" +
@@ -41,11 +42,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             var rawRecipeText by remember { mutableStateOf(testRecipe) }
 
-            var parsedRecipeString by remember { mutableStateOf<String>("") }
-            var recipe by remember { mutableStateOf<Recipe?>(null)}
-            System.loadLibrary("reverse")
-
-            var title = uniffi.reverse.reverseString("Ingredients")
+//            var parsedRecipeString by remember { mutableStateOf<String>("") }
+            var recipe by remember { mutableStateOf<CooklangRecipe?>(null)}
+//            System.loadLibrary("cooklang")
 
             CooklangParserTheme {
                 // A surface container using the 'background' color from the theme
@@ -64,19 +63,18 @@ class MainActivity : ComponentActivity() {
                             rawRecipeText = it
                         })
                     Button(onClick = {
-                        recipe = Parser.parseRecipe(rawRecipeText)
-
+                        recipe = parse(rawRecipeText, "hohoho")
                     }) {
                         Text(text = "Parse!")
                     }
                     recipe?.let {
-                        Text(text = "$title: ")
-                        it.ingredients.map {
-                            Text(text = "${it.name} ${it.quantityFloat ?: it.quantityString}${it.units}")
-                        }
-                        Spacer(modifier = Modifier.size(8.dp))
-                        Text(text = "Instructions: ")
-                        Text(text = it.getDisplayString())
+                        Text(text = "${recipe!!.name}: ")
+//                        it.ingredients.map {
+//                            Text(text = "${it.name} ${it.quantityFloat ?: it.quantityString}${it.units}")
+//                        }
+//                        Spacer(modifier = Modifier.size(8.dp))
+//                        Text(text = "Instructions: ")
+//                        Text(text = it.getDisplayString())
                     }
 
                 }
