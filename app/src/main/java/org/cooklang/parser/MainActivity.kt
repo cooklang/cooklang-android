@@ -32,6 +32,7 @@ import uniffi.cooklang.parse
 import uniffi.cooklang.CooklangRecipe
 
 
+
 private val testRecipe = "Slice @bacon{1kg} and things" + "\n" +
         "Add @bacon{2kg} to @eggs"
 
@@ -63,12 +64,12 @@ class MainActivity : ComponentActivity() {
                             rawRecipeText = it
                         })
                     Button(onClick = {
-                        recipe = parse(rawRecipeText, "hohoho")
+                        recipe = parse(rawRecipeText)
                     }) {
                         Text(text = "Parse!")
                     }
                     recipe?.let {
-                        Text(text = "${recipe!!.name}: ")
+                        Text(text = "${recipe!!.steps[0].toString()}: ")
 //                        it.ingredients.map {
 //                            Text(text = "${it.name} ${it.quantityFloat ?: it.quantityString}${it.units}")
 //                        }

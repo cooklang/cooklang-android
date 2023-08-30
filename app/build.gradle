@@ -79,7 +79,7 @@ android.applicationVariants.all { variant ->
     def generateBindings = tasks.register("generate${variant.name.capitalize()}UniFFIBindings", Exec) {
         workingDir "${project.projectDir}/../../cooklang-rs"
         // Runs the bindings generation, note that you must have uniffi-bindgen installed and in your PATH environment variable
-        commandLine 'cargo', 'run', '--features=uniffi/cli', '--bin', 'uniffi-bindgen', 'generate', '--library', "${buildDir}/../src/main/libs/x86_64/libcooklang.so", '--language', 'kotlin', '--out-dir', uniffiPath
+        commandLine 'cargo', 'run', '--features=bindings,uniffi/cli', '--bin', 'uniffi-bindgen', 'generate', '--library', "${buildDir}/../src/main/libs/x86_64/libcooklang.so", '--language', 'kotlin', '--out-dir', uniffiPath
     }
     variant.javaCompileProvider.get().dependsOn(generateBindings)
     def sourceSet = variant.sourceSets.find { it.name == variant.name }
@@ -101,7 +101,7 @@ archTriplets.each { arch, target ->
     // Build with cargo
     tasks.create(name: "cargo-build-${arch}", type: Exec, description: "Building core for ${arch}") {
         workingDir rustBasePath
-        commandLine 'cargo', 'build', '--lib', "--target=${target}", '--release'
+        commandLine 'cargo', 'build', '--features=bindings', '--lib', "--target=${target}", '--release'
     }
     // Sync shared native dependencies
     tasks.create(name: "sync-rust-deps-${arch}", type: Sync, dependsOn: "cargo-build-${arch}") {
@@ -123,7 +123,7 @@ archTriplets.each { arch, target ->
     preBuild.dependsOn "rust-deploy-${arch}"
 
     // Hook up clean tasks
-    tasks.create(name: "clean-${arch}", type: Delete, description: "Deleting built libs for ${arch}", dependsOn: "cargo-output-dir-${arch}") {
+    tasks.create(name: "clean-${arch}", type: Delete, description: "Deleting built libs for ${arch}") {
         delete fileTree("${project.ext.cargo_target_directory}/${archTriplets[arch]}/release") {
             include '*.so'
         }
