@@ -33,8 +33,9 @@ import uniffi.cooklang.CooklangRecipe
 
 
 
-private val testRecipe = "Slice @bacon{1kg} and things" + "\n" +
-        "Add @bacon{2kg} to @eggs"
+private val testRecipe = ">> source: https://jamieoliver.com" + "\n" +
+        "Slice @bacon{1%kg} and things" + "\n" +
+        "Add @bacon{2%kg} to @eggs"
 
 class MainActivity : ComponentActivity() {
 
@@ -69,7 +70,7 @@ class MainActivity : ComponentActivity() {
                         Text(text = "Parse!")
                     }
                     recipe?.let {
-                        Text(text = "${recipe!!.steps[0].toString()}: ")
+                        Text(text = "${recipe!!.toString()}: ")
 //                        it.ingredients.map {
 //                            Text(text = "${it.name} ${it.quantityFloat ?: it.quantityString}${it.units}")
 //                        }
