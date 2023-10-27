@@ -58,7 +58,7 @@ def archTriplets = [
 ]
 
 // Uncomment to update bindings
-
+//
 //android.libraryVariants.all { variant ->
 //    def uniffiPath = "${buildDir}/../src/main/java"
 //    def generateBindings = tasks.register("generate${variant.name.capitalize()}UniFFIBindings", Exec) {
@@ -70,8 +70,8 @@ def archTriplets = [
 //    def sourceSet = variant.sourceSets.find { it.name == variant.name }
 //    sourceSet.java.srcDir new File(uniffiPath)
 //}
-
-
+//
+//
 //archTriplets.each { arch, target ->
 //    project.ext.cargo_target_directory = rustBasePath + "/target"
 //    // Build with cargo

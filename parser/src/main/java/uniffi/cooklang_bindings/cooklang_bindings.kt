@@ -17,6 +17,7 @@ package uniffi.cooklang_bindings
 // compile the Rust component. The easiest way to ensure this is to bundle the Kotlin
 // helpers directly inline like we're doing here.
 
+import com.sun.jna.Callback
 import com.sun.jna.IntegerType
 import com.sun.jna.Library
 import com.sun.jna.Native
@@ -340,9 +341,14 @@ internal class UniFfiHandleMap<T : Any> {
         return map.get(handle)
     }
 
-    fun remove(handle: USize) {
-        map.remove(handle)
+    fun remove(handle: USize): T? {
+        return map.remove(handle)
     }
+}
+
+// FFI type for Rust future continuations
+internal interface UniFffiRustFutureContinuationCallbackType : com.sun.jna.Callback {
+    fun callback(continuationHandle: USize, pollResult: Short)
 }
 
 // Contains loading, initialization code,
@@ -418,6 +424,191 @@ internal interface _UniFFILib : Library {
         `additional`: Int,
         _uniffi_out_err: RustCallStatus,
     ): RustBuffer.ByValue
+    fun ffi_cooklang_bindings_rust_future_continuation_callback_set(
+        `callback`: UniFffiRustFutureContinuationCallbackType,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_poll_u8(
+        `handle`: Pointer,
+        `uniffiCallback`: USize,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_cancel_u8(
+        `handle`: Pointer,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_free_u8(
+        `handle`: Pointer,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_complete_u8(
+        `handle`: Pointer,
+        _uniffi_out_err: RustCallStatus,
+    ): Byte
+    fun ffi_cooklang_bindings_rust_future_poll_i8(
+        `handle`: Pointer,
+        `uniffiCallback`: USize,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_cancel_i8(
+        `handle`: Pointer,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_free_i8(
+        `handle`: Pointer,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_complete_i8(
+        `handle`: Pointer,
+        _uniffi_out_err: RustCallStatus,
+    ): Byte
+    fun ffi_cooklang_bindings_rust_future_poll_u16(
+        `handle`: Pointer,
+        `uniffiCallback`: USize,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_cancel_u16(
+        `handle`: Pointer,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_free_u16(
+        `handle`: Pointer,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_complete_u16(
+        `handle`: Pointer,
+        _uniffi_out_err: RustCallStatus,
+    ): Short
+    fun ffi_cooklang_bindings_rust_future_poll_i16(
+        `handle`: Pointer,
+        `uniffiCallback`: USize,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_cancel_i16(
+        `handle`: Pointer,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_free_i16(
+        `handle`: Pointer,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_complete_i16(
+        `handle`: Pointer,
+        _uniffi_out_err: RustCallStatus,
+    ): Short
+    fun ffi_cooklang_bindings_rust_future_poll_u32(
+        `handle`: Pointer,
+        `uniffiCallback`: USize,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_cancel_u32(
+        `handle`: Pointer,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_free_u32(
+        `handle`: Pointer,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_complete_u32(
+        `handle`: Pointer,
+        _uniffi_out_err: RustCallStatus,
+    ): Int
+    fun ffi_cooklang_bindings_rust_future_poll_i32(
+        `handle`: Pointer,
+        `uniffiCallback`: USize,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_cancel_i32(
+        `handle`: Pointer,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_free_i32(
+        `handle`: Pointer,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_complete_i32(
+        `handle`: Pointer,
+        _uniffi_out_err: RustCallStatus,
+    ): Int
+    fun ffi_cooklang_bindings_rust_future_poll_u64(
+        `handle`: Pointer,
+        `uniffiCallback`: USize,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_cancel_u64(
+        `handle`: Pointer,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_free_u64(
+        `handle`: Pointer,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_complete_u64(
+        `handle`: Pointer,
+        _uniffi_out_err: RustCallStatus,
+    ): Long
+    fun ffi_cooklang_bindings_rust_future_poll_i64(
+        `handle`: Pointer,
+        `uniffiCallback`: USize,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_cancel_i64(
+        `handle`: Pointer,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_free_i64(
+        `handle`: Pointer,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_complete_i64(
+        `handle`: Pointer,
+        _uniffi_out_err: RustCallStatus,
+    ): Long
+    fun ffi_cooklang_bindings_rust_future_poll_f32(
+        `handle`: Pointer,
+        `uniffiCallback`: USize,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_cancel_f32(
+        `handle`: Pointer,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_free_f32(
+        `handle`: Pointer,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_complete_f32(
+        `handle`: Pointer,
+        _uniffi_out_err: RustCallStatus,
+    ): Float
+    fun ffi_cooklang_bindings_rust_future_poll_f64(
+        `handle`: Pointer,
+        `uniffiCallback`: USize,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_cancel_f64(
+        `handle`: Pointer,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_free_f64(
+        `handle`: Pointer,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_complete_f64(
+        `handle`: Pointer,
+        _uniffi_out_err: RustCallStatus,
+    ): Double
+    fun ffi_cooklang_bindings_rust_future_poll_pointer(
+        `handle`: Pointer,
+        `uniffiCallback`: USize,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_cancel_pointer(
+        `handle`: Pointer,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_free_pointer(
+        `handle`: Pointer,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_complete_pointer(
+        `handle`: Pointer,
+        _uniffi_out_err: RustCallStatus,
+    ): Pointer
+    fun ffi_cooklang_bindings_rust_future_poll_rust_buffer(
+        `handle`: Pointer,
+        `uniffiCallback`: USize,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_cancel_rust_buffer(
+        `handle`: Pointer,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_free_rust_buffer(
+        `handle`: Pointer,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_complete_rust_buffer(
+        `handle`: Pointer,
+        _uniffi_out_err: RustCallStatus,
+    ): RustBuffer.ByValue
+    fun ffi_cooklang_bindings_rust_future_poll_void(
+        `handle`: Pointer,
+        `uniffiCallback`: USize,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_cancel_void(
+        `handle`: Pointer,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_free_void(
+        `handle`: Pointer,
+    ): Unit
+    fun ffi_cooklang_bindings_rust_future_complete_void(
+        `handle`: Pointer,
+        _uniffi_out_err: RustCallStatus,
+    ): Unit
     fun uniffi_cooklang_bindings_checksum_func_combine_ingredient_lists(): Short
     fun uniffi_cooklang_bindings_checksum_func_parse_aisle_config(): Short
     fun uniffi_cooklang_bindings_checksum_func_parse_metadata(): Short
@@ -428,7 +619,7 @@ internal interface _UniFFILib : Library {
 
 private fun uniffiCheckContractApiVersion(lib: _UniFFILib) {
     // Get the bindings contract version from our ComponentInterface
-    val bindings_contract_version = 23
+    val bindings_contract_version = 24
     // Get the scaffolding contract version by calling the into the dylib
     val scaffolding_contract_version = lib.ffi_cooklang_bindings_uniffi_contract_version()
     if (bindings_contract_version != scaffolding_contract_version) {
@@ -438,7 +629,7 @@ private fun uniffiCheckContractApiVersion(lib: _UniFFILib) {
 
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
-    if (lib.uniffi_cooklang_bindings_checksum_func_combine_ingredient_lists() != 48024.toShort()) {
+    if (lib.uniffi_cooklang_bindings_checksum_func_combine_ingredient_lists() != 23633.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_cooklang_bindings_checksum_func_parse_aisle_config() != 54557.toShort()) {
@@ -454,6 +645,8 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
+
+// Async support
 
 // Public interface members begin here.
 
@@ -694,8 +887,8 @@ abstract class FFIObject(
 }
 
 public interface AisleConfInterface {
-
     fun `categoryFor`(`ingredientName`: String): String?
+
     companion object
 }
 
@@ -734,7 +927,10 @@ class AisleConf(
 }
 
 public object FfiConverterTypeAisleConf : FfiConverter<AisleConf, Pointer> {
-    override fun lower(value: AisleConf): Pointer = value.callWithPointer { it }
+
+    override fun lower(value: AisleConf): Pointer {
+        return value.callWithPointer { it }
+    }
 
     override fun lift(value: Pointer): AisleConf {
         return AisleConf(value)
@@ -839,7 +1035,7 @@ public object FfiConverterTypeAmount : FfiConverterRustBuffer<Amount> {
 data class CooklangRecipe(
     var `metadata`: Map<String, String>,
     var `steps`: List<Step>,
-    var `ingredients`: Map<String, Map<HardToNameWtf, Value>>,
+    var `ingredients`: Map<String, Map<GroupedQuantityKey, Value>>,
     var `cookware`: List<Item>,
 ) {
 
@@ -851,7 +1047,7 @@ public object FfiConverterTypeCooklangRecipe : FfiConverterRustBuffer<CooklangRe
         return CooklangRecipe(
             FfiConverterMapStringString.read(buf),
             FfiConverterSequenceTypeStep.read(buf),
-            FfiConverterMapStringMapTypeHardToNameWTFTypeValue.read(buf),
+            FfiConverterMapStringMapTypeGroupedQuantityKeyTypeValue.read(buf),
             FfiConverterSequenceTypeItem.read(buf),
         )
     }
@@ -859,19 +1055,19 @@ public object FfiConverterTypeCooklangRecipe : FfiConverterRustBuffer<CooklangRe
     override fun allocationSize(value: CooklangRecipe) = (
         FfiConverterMapStringString.allocationSize(value.`metadata`) +
             FfiConverterSequenceTypeStep.allocationSize(value.`steps`) +
-            FfiConverterMapStringMapTypeHardToNameWTFTypeValue.allocationSize(value.`ingredients`) +
+            FfiConverterMapStringMapTypeGroupedQuantityKeyTypeValue.allocationSize(value.`ingredients`) +
             FfiConverterSequenceTypeItem.allocationSize(value.`cookware`)
         )
 
     override fun write(value: CooklangRecipe, buf: ByteBuffer) {
         FfiConverterMapStringString.write(value.`metadata`, buf)
         FfiConverterSequenceTypeStep.write(value.`steps`, buf)
-        FfiConverterMapStringMapTypeHardToNameWTFTypeValue.write(value.`ingredients`, buf)
+        FfiConverterMapStringMapTypeGroupedQuantityKeyTypeValue.write(value.`ingredients`, buf)
         FfiConverterSequenceTypeItem.write(value.`cookware`, buf)
     }
 }
 
-data class HardToNameWtf(
+data class GroupedQuantityKey(
     var `name`: String,
     var `unitType`: QuantityType,
 ) {
@@ -879,20 +1075,20 @@ data class HardToNameWtf(
     companion object
 }
 
-public object FfiConverterTypeHardToNameWTF : FfiConverterRustBuffer<HardToNameWtf> {
-    override fun read(buf: ByteBuffer): HardToNameWtf {
-        return HardToNameWtf(
+public object FfiConverterTypeGroupedQuantityKey : FfiConverterRustBuffer<GroupedQuantityKey> {
+    override fun read(buf: ByteBuffer): GroupedQuantityKey {
+        return GroupedQuantityKey(
             FfiConverterString.read(buf),
             FfiConverterTypeQuantityType.read(buf),
         )
     }
 
-    override fun allocationSize(value: HardToNameWtf) = (
+    override fun allocationSize(value: GroupedQuantityKey) = (
         FfiConverterString.allocationSize(value.`name`) +
             FfiConverterTypeQuantityType.allocationSize(value.`unitType`)
         )
 
-    override fun write(value: HardToNameWtf, buf: ByteBuffer) {
+    override fun write(value: GroupedQuantityKey, buf: ByteBuffer) {
         FfiConverterString.write(value.`name`, buf)
         FfiConverterTypeQuantityType.write(value.`unitType`, buf)
     }
@@ -1290,24 +1486,24 @@ public object FfiConverterSequenceTypeItem : FfiConverterRustBuffer<List<Item>> 
     }
 }
 
-public object FfiConverterSequenceMapStringMapTypeHardToNameWTFTypeValue : FfiConverterRustBuffer<List<Map<String, Map<HardToNameWtf, Value>>>> {
-    override fun read(buf: ByteBuffer): List<Map<String, Map<HardToNameWtf, Value>>> {
+public object FfiConverterSequenceMapStringMapTypeGroupedQuantityKeyTypeValue : FfiConverterRustBuffer<List<Map<String, Map<GroupedQuantityKey, Value>>>> {
+    override fun read(buf: ByteBuffer): List<Map<String, Map<GroupedQuantityKey, Value>>> {
         val len = buf.getInt()
-        return List<Map<String, Map<HardToNameWtf, Value>>>(len) {
-            FfiConverterMapStringMapTypeHardToNameWTFTypeValue.read(buf)
+        return List<Map<String, Map<GroupedQuantityKey, Value>>>(len) {
+            FfiConverterMapStringMapTypeGroupedQuantityKeyTypeValue.read(buf)
         }
     }
 
-    override fun allocationSize(value: List<Map<String, Map<HardToNameWtf, Value>>>): Int {
+    override fun allocationSize(value: List<Map<String, Map<GroupedQuantityKey, Value>>>): Int {
         val sizeForLength = 4
-        val sizeForItems = value.map { FfiConverterMapStringMapTypeHardToNameWTFTypeValue.allocationSize(it) }.sum()
+        val sizeForItems = value.map { FfiConverterMapStringMapTypeGroupedQuantityKeyTypeValue.allocationSize(it) }.sum()
         return sizeForLength + sizeForItems
     }
 
-    override fun write(value: List<Map<String, Map<HardToNameWtf, Value>>>, buf: ByteBuffer) {
+    override fun write(value: List<Map<String, Map<GroupedQuantityKey, Value>>>, buf: ByteBuffer) {
         buf.putInt(value.size)
         value.forEach {
-            FfiConverterMapStringMapTypeHardToNameWTFTypeValue.write(it, buf)
+            FfiConverterMapStringMapTypeGroupedQuantityKeyTypeValue.write(it, buf)
         }
     }
 }
@@ -1345,76 +1541,76 @@ public object FfiConverterMapStringString : FfiConverterRustBuffer<Map<String, S
     }
 }
 
-public object FfiConverterMapStringMapTypeHardToNameWTFTypeValue : FfiConverterRustBuffer<Map<String, Map<HardToNameWtf, Value>>> {
-    override fun read(buf: ByteBuffer): Map<String, Map<HardToNameWtf, Value>> {
+public object FfiConverterMapStringMapTypeGroupedQuantityKeyTypeValue : FfiConverterRustBuffer<Map<String, Map<GroupedQuantityKey, Value>>> {
+    override fun read(buf: ByteBuffer): Map<String, Map<GroupedQuantityKey, Value>> {
         val len = buf.getInt()
-        return buildMap<String, Map<HardToNameWtf, Value>>(len) {
+        return buildMap<String, Map<GroupedQuantityKey, Value>>(len) {
             repeat(len) {
                 val k = FfiConverterString.read(buf)
-                val v = FfiConverterMapTypeHardToNameWTFTypeValue.read(buf)
+                val v = FfiConverterMapTypeGroupedQuantityKeyTypeValue.read(buf)
                 this[k] = v
             }
         }
     }
 
-    override fun allocationSize(value: Map<String, Map<HardToNameWtf, Value>>): Int {
+    override fun allocationSize(value: Map<String, Map<GroupedQuantityKey, Value>>): Int {
         val spaceForMapSize = 4
         val spaceForChildren = value.map { (k, v) ->
             FfiConverterString.allocationSize(k) +
-                FfiConverterMapTypeHardToNameWTFTypeValue.allocationSize(v)
+                FfiConverterMapTypeGroupedQuantityKeyTypeValue.allocationSize(v)
         }.sum()
         return spaceForMapSize + spaceForChildren
     }
 
-    override fun write(value: Map<String, Map<HardToNameWtf, Value>>, buf: ByteBuffer) {
+    override fun write(value: Map<String, Map<GroupedQuantityKey, Value>>, buf: ByteBuffer) {
         buf.putInt(value.size)
         // The parens on `(k, v)` here ensure we're calling the right method,
         // which is important for compatibility with older android devices.
         // Ref https://blog.danlew.net/2017/03/16/kotlin-puzzler-whose-line-is-it-anyways/
         value.forEach { (k, v) ->
             FfiConverterString.write(k, buf)
-            FfiConverterMapTypeHardToNameWTFTypeValue.write(v, buf)
+            FfiConverterMapTypeGroupedQuantityKeyTypeValue.write(v, buf)
         }
     }
 }
 
-public object FfiConverterMapTypeHardToNameWTFTypeValue : FfiConverterRustBuffer<Map<HardToNameWtf, Value>> {
-    override fun read(buf: ByteBuffer): Map<HardToNameWtf, Value> {
+public object FfiConverterMapTypeGroupedQuantityKeyTypeValue : FfiConverterRustBuffer<Map<GroupedQuantityKey, Value>> {
+    override fun read(buf: ByteBuffer): Map<GroupedQuantityKey, Value> {
         val len = buf.getInt()
-        return buildMap<HardToNameWtf, Value>(len) {
+        return buildMap<GroupedQuantityKey, Value>(len) {
             repeat(len) {
-                val k = FfiConverterTypeHardToNameWTF.read(buf)
+                val k = FfiConverterTypeGroupedQuantityKey.read(buf)
                 val v = FfiConverterTypeValue.read(buf)
                 this[k] = v
             }
         }
     }
 
-    override fun allocationSize(value: Map<HardToNameWtf, Value>): Int {
+    override fun allocationSize(value: Map<GroupedQuantityKey, Value>): Int {
         val spaceForMapSize = 4
         val spaceForChildren = value.map { (k, v) ->
-            FfiConverterTypeHardToNameWTF.allocationSize(k) +
+            FfiConverterTypeGroupedQuantityKey.allocationSize(k) +
                 FfiConverterTypeValue.allocationSize(v)
         }.sum()
         return spaceForMapSize + spaceForChildren
     }
 
-    override fun write(value: Map<HardToNameWtf, Value>, buf: ByteBuffer) {
+    override fun write(value: Map<GroupedQuantityKey, Value>, buf: ByteBuffer) {
         buf.putInt(value.size)
         // The parens on `(k, v)` here ensure we're calling the right method,
         // which is important for compatibility with older android devices.
         // Ref https://blog.danlew.net/2017/03/16/kotlin-puzzler-whose-line-is-it-anyways/
         value.forEach { (k, v) ->
-            FfiConverterTypeHardToNameWTF.write(k, buf)
+            FfiConverterTypeGroupedQuantityKey.write(k, buf)
             FfiConverterTypeValue.write(v, buf)
         }
     }
 }
 
-fun `combineIngredientLists`(`lists`: List<Map<String, Map<HardToNameWtf, Value>>>): Map<String, Map<HardToNameWtf, Value>> {
-    return FfiConverterMapStringMapTypeHardToNameWTFTypeValue.lift(
+fun `combineIngredientLists`(`lists`: List<Map<String, Map<GroupedQuantityKey, Value>>>): Map<String, Map<GroupedQuantityKey, Value>> {
+    return FfiConverterMapStringMapTypeGroupedQuantityKeyTypeValue.lift(
         rustCall() { _status ->
-            _UniFFILib.INSTANCE.uniffi_cooklang_bindings_fn_func_combine_ingredient_lists(FfiConverterSequenceMapStringMapTypeHardToNameWTFTypeValue.lower(`lists`), _status)
+            _UniFFILib.INSTANCE.uniffi_cooklang_bindings_fn_func_combine_ingredient_lists(FfiConverterSequenceMapStringMapTypeGroupedQuantityKeyTypeValue.lower(`lists`), _status)
         },
     )
 }

@@ -125,8 +125,9 @@ class MainActivity : ComponentActivity() {
                         Text(text = "Category for avocado: ${aisleConf!!.categoryFor("avocado")} ")
 
                         Divider()
-
-                        //Text(text = "Merged ingredients from Recipe 1 and Recipe 2: ${combineIngredientLists(listOf(recipeOne!!.ingredients, recipeTwo!!.ingredients))} ")
+                        val listOfIngredients = listOf(recipeOne!!.ingredients, recipeOne!!.ingredients);
+                        val combined = combineIngredientLists(listOfIngredients);
+                        Text(text = "Merged ingredients from Recipe 1 and Recipe 2: ${combined.toString()} ")
                     }
 
                 }
