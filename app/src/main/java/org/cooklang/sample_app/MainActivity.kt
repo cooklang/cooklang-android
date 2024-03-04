@@ -25,6 +25,11 @@ import uniffi.cooklang_bindings.CooklangRecipe
 import uniffi.cooklang_bindings.combineIngredientLists
 import uniffi.cooklang_bindings.parseAisleConfig
 import uniffi.cooklang_bindings.parseRecipe
+import uniffi.cooklang_sync_client.run
+import java.io.File
+
+
+
 
 
 private val testRecipeOne = """
@@ -59,6 +64,20 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val thread = Thread {
+            val dbName = "sync.db"
+            val dbFile = getDatabasePath(dbName)
+
+            val internalStorageDir = filesDir
+            val recipesDirectory = File(internalStorageDir, "Recipes")
+            if (!recipesDirectory.exists()) {
+                recipesDirectory.mkdir()
+            }
+            run(recipesDirectory.getAbsolutePath(), dbFile.getAbsolutePath(), "https://platform.cooklang.org", "hehe")
+        }
+        thread.start()
+
         setContent {
             var rawRecipeText by remember { mutableStateOf(testRecipeOne) }
             var rawRecipeTextTwo by remember { mutableStateOf(testRecipeTwo) }

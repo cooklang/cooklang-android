@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 rootProject.name = "Cooklang Sample App"
 include ':app'
 include ':parser'
+include ':sync'

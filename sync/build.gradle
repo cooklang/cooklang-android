@@ -1,0 +1,117 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'org.cooklang.sync'
+    compileSdk 33
+    ndkVersion "26.2.11394342"
+
+    defaultConfig {
+        minSdk 26
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+
+        ndk.abiFilters "armeabi-v7a","arm64-v8a","x86","x86_64"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_17
+    }
+
+    sourceSets {
+        main {
+            // Include native libraries
+            jniLibs.srcDirs += 'libs'
+        }
+    }
+}
+
+dependencies {
+
+    implementation 'androidx.core:core-ktx:1.9.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.9.0'
+    implementation 'net.java.dev.jna:jna:5.13.0@aar'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+}
+
+def rustBasePath = '../../cooklang-sync'
+def archTriplets = [
+        'armeabi-v7a': 'armv7-linux-androideabi',
+        'arm64-v8a': 'aarch64-linux-android',
+        'x86': 'i686-linux-android',
+        'x86_64': 'x86_64-linux-android',
+]
+
+// Uncomment to update bindings
+//
+//android.libraryVariants.all { variant ->
+//    def uniffiPath = "${buildDir}/../src/main/java"
+//    def generateBindings = tasks.register("generate${variant.name.capitalize()}UniFFIBindings", Exec) {
+//        workingDir "${rustBasePath}/client"
+//        // Runs the bindings generation, note that you must have uniffi-bindgen installed and in your PATH environment variable
+//        commandLine 'cargo', 'run', '--features=uniffi/cli', '--bin', 'uniffi-bindgen', 'generate', '--library', "${buildDir}/../libs/arm64-v8a/libcooklang_sync_client.so", '--language', 'kotlin', '--out-dir', uniffiPath
+//    }
+//    variant.javaCompileProvider.get().dependsOn(generateBindings)
+//    def sourceSet = variant.sourceSets.find { it.name == variant.name }
+//    sourceSet.java.srcDir new File(uniffiPath)
+//}
+////
+////
+//archTriplets.each { arch, target ->
+//    project.ext.cargo_target_directory = rustBasePath + "/target"
+//    // Build with cargo
+//    tasks.create(name: "cargo-build-${arch}", type: Exec, description: "Building core for ${arch}") {
+//        workingDir "${rustBasePath}/client"
+//        commandLine 'cargo', 'build', '--lib', "--target=${target}", '--release'
+//        if (arch == "x86_64") {
+//            def clangVersion = '17.0.2'
+//            def libDir = "${android.sdkDirectory}/ndk/${android.ndkVersion}/toolchains/llvm/prebuilt/darwin-x86_64/lib/clang/${clangVersion}/lib/linux"
+////            println(libDir)
+////            environment('DARWIN_X86_64_LIB_DIR', libDir)
+////            environment('LINUX_X86_64_LIB_DIR', libDir)
+//        }
+//    }
+//
+//    // Sync shared native dependencies
+//    tasks.create(name: "sync-rust-deps-${arch}", type: Sync, dependsOn: "cargo-build-${arch}") {
+//        from "${project.ext.cargo_target_directory}/${archTriplets[arch]}/release"
+//        include "*.so"
+//        into "libs/${arch}"
+//    }
+//    // Copy build libs into this app's libs directory
+//    tasks.create(name: "rust-deploy-${arch}", type: Copy, dependsOn: "sync-rust-deps-${arch}", description: "Copy rust libs for (${arch}) to jniLibs") {
+//        from "${project.ext.cargo_target_directory}/${archTriplets[arch]}/release"
+//        include "*.so"
+//        into "libs/${arch}"
+//    }
+//
+//    // Hook up tasks to execute before building java
+//    tasks.withType(JavaCompile) {
+//        compileTask -> compileTask.dependsOn "rust-deploy-${arch}"
+//    }
+//    preBuild.dependsOn "rust-deploy-${arch}"
+//
+//    // Hook up clean tasks
+//    tasks.create(name: "clean-${arch}", type: Delete, description: "Deleting built libs for ${arch}") {
+//        delete fileTree("${project.ext.cargo_target_directory}/${archTriplets[arch]}/release") {
+//            include '*.so'
+//        }
+//    }
+//    clean.dependsOn "clean-${arch}"
+//}
