@@ -74,7 +74,7 @@ class MainActivity : ComponentActivity() {
             if (!recipesDirectory.exists()) {
                 recipesDirectory.mkdir()
             }
-            run(recipesDirectory.getAbsolutePath(), dbFile.getAbsolutePath(), "https://platform.cooklang.org/api", "hehe")
+            run(recipesDirectory.getAbsolutePath(), dbFile.getAbsolutePath(), "https://platform.cooklang.org/api", "hehe", false)
         }
         thread.start()
 

@@ -393,6 +393,27 @@ internal interface UniffiLib : Library {
         `dbFilePath`: RustBuffer.ByValue,
         `apiEndpoint`: RustBuffer.ByValue,
         `remoteToken`: RustBuffer.ByValue,
+        `downloadOnly`: Byte,
+        uniffi_out_err: UniffiRustCallStatus,
+    ): Unit
+    fun uniffi_cooklang_sync_client_fn_func_run_download_once(
+        `storageDir`: RustBuffer.ByValue,
+        `dbFilePath`: RustBuffer.ByValue,
+        `apiEndpoint`: RustBuffer.ByValue,
+        `remoteToken`: RustBuffer.ByValue,
+        uniffi_out_err: UniffiRustCallStatus,
+    ): Unit
+    fun uniffi_cooklang_sync_client_fn_func_run_upload_once(
+        `storageDir`: RustBuffer.ByValue,
+        `dbFilePath`: RustBuffer.ByValue,
+        `apiEndpoint`: RustBuffer.ByValue,
+        `remoteToken`: RustBuffer.ByValue,
+        uniffi_out_err: UniffiRustCallStatus,
+    ): Unit
+    fun uniffi_cooklang_sync_client_fn_func_wait_remote_update(
+        `apiEndpoint`: RustBuffer.ByValue,
+        `remoteToken`: RustBuffer.ByValue,
+        `waitTime`: Int,
         uniffi_out_err: UniffiRustCallStatus,
     ): Unit
     fun ffi_cooklang_sync_client_rustbuffer_alloc(
@@ -608,6 +629,9 @@ internal interface UniffiLib : Library {
         uniffi_out_err: UniffiRustCallStatus,
     ): Unit
     fun uniffi_cooklang_sync_client_checksum_func_run(): Short
+    fun uniffi_cooklang_sync_client_checksum_func_run_download_once(): Short
+    fun uniffi_cooklang_sync_client_checksum_func_run_upload_once(): Short
+    fun uniffi_cooklang_sync_client_checksum_func_wait_remote_update(): Short
     fun ffi_cooklang_sync_client_uniffi_contract_version(): Int
 }
 
@@ -623,7 +647,16 @@ private fun uniffiCheckContractApiVersion(lib: UniffiLib) {
 
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: UniffiLib) {
-    if (lib.uniffi_cooklang_sync_client_checksum_func_run() != 22462.toShort()) {
+    if (lib.uniffi_cooklang_sync_client_checksum_func_run() != 3982.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_cooklang_sync_client_checksum_func_run_download_once() != 47219.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_cooklang_sync_client_checksum_func_run_upload_once() != 57525.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_cooklang_sync_client_checksum_func_wait_remote_update() != 20382.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
@@ -661,6 +694,46 @@ inline fun <T : Disposable?, R> T.use(block: (T) -> R) =
             // swallow
         }
     }
+
+public object FfiConverterInt : FfiConverter<Int, Int> {
+    override fun lift(value: Int): Int {
+        return value
+    }
+
+    override fun read(buf: ByteBuffer): Int {
+        return buf.getInt()
+    }
+
+    override fun lower(value: Int): Int {
+        return value
+    }
+
+    override fun allocationSize(value: Int) = 4
+
+    override fun write(value: Int, buf: ByteBuffer) {
+        buf.putInt(value)
+    }
+}
+
+public object FfiConverterBoolean : FfiConverter<Boolean, Byte> {
+    override fun lift(value: Byte): Boolean {
+        return value.toInt() != 0
+    }
+
+    override fun read(buf: ByteBuffer): Boolean {
+        return lift(buf.get())
+    }
+
+    override fun lower(value: Boolean): Byte {
+        return if (value) 1.toByte() else 0.toByte()
+    }
+
+    override fun allocationSize(value: Boolean) = 1
+
+    override fun write(value: Boolean, buf: ByteBuffer) {
+        buf.put(lower(value))
+    }
+}
 
 public object FfiConverterString : FfiConverter<String, RustBuffer.ByValue> {
     // Note: we don't inherit from FfiConverterRustBuffer, because we use a
@@ -732,6 +805,8 @@ sealed class SyncException(message: String) : Exception(message) {
 
     class ReqwestException(message: String) : SyncException(message)
 
+    class ReqwestWirhMiddlewareException(message: String) : SyncException(message)
+
     class ChannelSendException(message: String) : SyncException(message)
 
     class ConnectionInitException(message: String) : SyncException(message)
@@ -741,6 +816,8 @@ sealed class SyncException(message: String) : Exception(message) {
     class BodyExtractException(message: String) : SyncException(message)
 
     class GetFromCacheException(message: String) : SyncException(message)
+
+    class UnlistedFileFormat(message: String) : SyncException(message)
 
     class Unknown(message: String) : SyncException(message)
 
@@ -759,12 +836,14 @@ public object FfiConverterTypeSyncError : FfiConverterRustBuffer<SyncException> 
             5 -> SyncException.Convert(FfiConverterString.read(buf))
             6 -> SyncException.DbQueryException(FfiConverterString.read(buf))
             7 -> SyncException.ReqwestException(FfiConverterString.read(buf))
-            8 -> SyncException.ChannelSendException(FfiConverterString.read(buf))
-            9 -> SyncException.ConnectionInitException(FfiConverterString.read(buf))
-            10 -> SyncException.Unauthorized(FfiConverterString.read(buf))
-            11 -> SyncException.BodyExtractException(FfiConverterString.read(buf))
-            12 -> SyncException.GetFromCacheException(FfiConverterString.read(buf))
-            13 -> SyncException.Unknown(FfiConverterString.read(buf))
+            8 -> SyncException.ReqwestWirhMiddlewareException(FfiConverterString.read(buf))
+            9 -> SyncException.ChannelSendException(FfiConverterString.read(buf))
+            10 -> SyncException.ConnectionInitException(FfiConverterString.read(buf))
+            11 -> SyncException.Unauthorized(FfiConverterString.read(buf))
+            12 -> SyncException.BodyExtractException(FfiConverterString.read(buf))
+            13 -> SyncException.GetFromCacheException(FfiConverterString.read(buf))
+            14 -> SyncException.UnlistedFileFormat(FfiConverterString.read(buf))
+            15 -> SyncException.Unknown(FfiConverterString.read(buf))
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
     }
@@ -803,37 +882,86 @@ public object FfiConverterTypeSyncError : FfiConverterRustBuffer<SyncException> 
                 buf.putInt(7)
                 Unit
             }
-            is SyncException.ChannelSendException -> {
+            is SyncException.ReqwestWirhMiddlewareException -> {
                 buf.putInt(8)
                 Unit
             }
-            is SyncException.ConnectionInitException -> {
+            is SyncException.ChannelSendException -> {
                 buf.putInt(9)
                 Unit
             }
-            is SyncException.Unauthorized -> {
+            is SyncException.ConnectionInitException -> {
                 buf.putInt(10)
                 Unit
             }
-            is SyncException.BodyExtractException -> {
+            is SyncException.Unauthorized -> {
                 buf.putInt(11)
                 Unit
             }
-            is SyncException.GetFromCacheException -> {
+            is SyncException.BodyExtractException -> {
                 buf.putInt(12)
                 Unit
             }
-            is SyncException.Unknown -> {
+            is SyncException.GetFromCacheException -> {
                 buf.putInt(13)
+                Unit
+            }
+            is SyncException.UnlistedFileFormat -> {
+                buf.putInt(14)
+                Unit
+            }
+            is SyncException.Unknown -> {
+                buf.putInt(15)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
     }
 }
 
+/**
+ * Synchronous alias to async run function.
+ * Intended to used by external (written in other languages) callers.
+ */
 @Throws(SyncException::class)
-fun `run`(`storageDir`: String, `dbFilePath`: String, `apiEndpoint`: String, `remoteToken`: String) =
+fun `run`(`storageDir`: String, `dbFilePath`: String, `apiEndpoint`: String, `remoteToken`: String, `downloadOnly`: Boolean) =
 
     uniffiRustCallWithError(SyncException) { _status ->
-        UniffiLib.INSTANCE.uniffi_cooklang_sync_client_fn_func_run(FfiConverterString.lower(`storageDir`), FfiConverterString.lower(`dbFilePath`), FfiConverterString.lower(`apiEndpoint`), FfiConverterString.lower(`remoteToken`), _status)
+        UniffiLib.INSTANCE.uniffi_cooklang_sync_client_fn_func_run(FfiConverterString.lower(`storageDir`), FfiConverterString.lower(`dbFilePath`), FfiConverterString.lower(`apiEndpoint`), FfiConverterString.lower(`remoteToken`), FfiConverterBoolean.lower(`downloadOnly`), _status)
+    }
+
+/**
+ * Runs one-off download of updates from remote server.
+ * Note, it's not very efficient as requires to re-initialize DB connection,
+ * chunker, remote client, etc every time it runs.
+ */
+@Throws(SyncException::class)
+fun `runDownloadOnce`(`storageDir`: String, `dbFilePath`: String, `apiEndpoint`: String, `remoteToken`: String) =
+
+    uniffiRustCallWithError(SyncException) { _status ->
+        UniffiLib.INSTANCE.uniffi_cooklang_sync_client_fn_func_run_download_once(FfiConverterString.lower(`storageDir`), FfiConverterString.lower(`dbFilePath`), FfiConverterString.lower(`apiEndpoint`), FfiConverterString.lower(`remoteToken`), _status)
+    }
+
+/**
+ * Runs one-off upload of updates to remote server.
+ * Note, it's not very efficient as requires to re-initialize DB connection,
+ * chunker, remote client, etc every time it runs.
+ */
+@Throws(SyncException::class)
+fun `runUploadOnce`(`storageDir`: String, `dbFilePath`: String, `apiEndpoint`: String, `remoteToken`: String) =
+
+    uniffiRustCallWithError(SyncException) { _status ->
+        UniffiLib.INSTANCE.uniffi_cooklang_sync_client_fn_func_run_upload_once(FfiConverterString.lower(`storageDir`), FfiConverterString.lower(`dbFilePath`), FfiConverterString.lower(`apiEndpoint`), FfiConverterString.lower(`remoteToken`), _status)
+    }
+
+/**
+ * Connects to the server and waits either when `wait_time` expires or
+ * when there's a remote update for this client.
+ * Note, it doesn't do the update itself, you need to use `run_download_once`
+ * after this function completes.
+ */
+@Throws(SyncException::class)
+fun `waitRemoteUpdate`(`apiEndpoint`: String, `remoteToken`: String, `waitTime`: Int) =
+
+    uniffiRustCallWithError(SyncException) { _status ->
+        UniffiLib.INSTANCE.uniffi_cooklang_sync_client_fn_func_wait_remote_update(FfiConverterString.lower(`apiEndpoint`), FfiConverterString.lower(`remoteToken`), FfiConverterInt.lower(`waitTime`), _status)
     }
