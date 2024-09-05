@@ -1,19 +1,37 @@
 plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
+    id 'maven-publish'
+}
+
+def gprProperties = new Properties()
+file("../gpr.properties").withInputStream { gprProperties.load(it) }
+
+ext {
+    versionName = "0.13.3"
 }
 
 android {
     namespace 'org.cooklang.parser'
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         minSdk 26
 
+
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
 
-        ndk.abiFilters "armeabi-v7a","arm64-v8a","x86","x86_64"
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+        }
+    }
+
+    sourceSets {
+        main {
+            java.srcDirs = ['src/main/kotlin']
+            jniLibs.srcDirs = ['src/main/jniLibs']
+        }
     }
 
     buildTypes {
@@ -22,31 +40,76 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
+
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_17
     }
 
-    sourceSets {
-        main {
-            // Include native libraries
-            jniLibs.srcDirs += 'libs'
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging = true
         }
     }
 }
 
 dependencies {
-
-    implementation 'androidx.core:core-ktx:1.9.0'
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.9.0'
     implementation 'net.java.dev.jna:jna:5.13.0@aar'
-    testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    implementation 'androidx.core:core-ktx:1.9.0'
+//    implementation 'androidx.appcompat:appcompat:1.6.1'
+//    implementation 'com.google.android.material:material:1.9.0'
+}
+
+publishing {
+    publications {
+        parser(MavenPublication) {
+            groupId = 'com.github.cooklang'
+            artifactId = 'parser'
+            version = versionName
+            afterEvaluate {
+                from components.release
+            }
+
+            pom {
+                name = 'cooklang-parser'
+                description = 'Cooklang Parser Library for Android'
+                url = 'https://github.com/cooklang/cooklang-android'
+                licenses {
+                    license {
+                        name = 'The MIT License (MIT)'
+                        url = 'http://opensource.org/licenses/MIT'
+                        distribution = 'repo'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'dubadub'
+                        name = 'Alexey Dubovksoy'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://github.com/cooklang/cooklang-android.git'
+                    developerConnection = 'scm:git:ssh://github.com:cooklang/cooklang-android.git'
+                    url = 'https://github.com/cooklang/cooklang-android'
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/cooklang/cooklang-android")
+            credentials {
+                username = gprProperties['gpr.user']
+                password = gprProperties['gpr.token']
+            }
+        }
+    }
 }
 
 def rustBasePath = '../../cooklang-rs'
@@ -59,50 +122,44 @@ def archTriplets = [
 
 // Uncomment to update bindings
 //
-//android.libraryVariants.all { variant ->
-//    def uniffiPath = "${buildDir}/../src/main/java"
-//    def generateBindings = tasks.register("generate${variant.name.capitalize()}UniFFIBindings", Exec) {
-//        workingDir "${rustBasePath}/bindings"
-//        // Runs the bindings generation, note that you must have uniffi-bindgen installed and in your PATH environment variable
-//        commandLine 'cargo', 'run', '--features=uniffi/cli', '--bin', 'uniffi-bindgen', 'generate', '--library', "${buildDir}/../libs/x86_64/libcooklang_bindings.so", '--language', 'kotlin', '--out-dir', uniffiPath
-//    }
-//    variant.javaCompileProvider.get().dependsOn(generateBindings)
-//    def sourceSet = variant.sourceSets.find { it.name == variant.name }
-//    sourceSet.java.srcDir new File(uniffiPath)
-//}
-//
-//
-//archTriplets.each { arch, target ->
-//    project.ext.cargo_target_directory = rustBasePath + "/target"
-//    // Build with cargo
-//    tasks.create(name: "cargo-build-${arch}", type: Exec, description: "Building core for ${arch}") {
-//        workingDir "${rustBasePath}/bindings"
-//        commandLine 'cargo', 'build', '--lib', "--target=${target}", '--release'
-//    }
-//    // Sync shared native dependencies
-//    tasks.create(name: "sync-rust-deps-${arch}", type: Sync, dependsOn: "cargo-build-${arch}") {
-//        from "${project.ext.cargo_target_directory}/${archTriplets[arch]}/release"
-//        include "*.so"
-//        into "libs/${arch}"
-//    }
-//    // Copy build libs into this app's libs directory
-//    tasks.create(name: "rust-deploy-${arch}", type: Copy, dependsOn: "sync-rust-deps-${arch}", description: "Copy rust libs for (${arch}) to jniLibs") {
-//        from "${project.ext.cargo_target_directory}/${archTriplets[arch]}/release"
-//        include "*.so"
-//        into "libs/${arch}"
-//    }
-//
-//    // Hook up tasks to execute before building java
-//    tasks.withType(JavaCompile) {
-//        compileTask -> compileTask.dependsOn "rust-deploy-${arch}"
-//    }
-//    preBuild.dependsOn "rust-deploy-${arch}"
-//
-//    // Hook up clean tasks
-//    tasks.create(name: "clean-${arch}", type: Delete, description: "Deleting built libs for ${arch}") {
-//        delete fileTree("${project.ext.cargo_target_directory}/${archTriplets[arch]}/release") {
-//            include '*.so'
-//        }
-//    }
-//    clean.dependsOn "clean-${arch}"
-//}
+android.libraryVariants.all { variant ->
+    def uniffiPath = "${buildDir}/../src/main/kotlin"
+    def libPath = "${buildDir}/../src/main/jniLibs/arm64-v8a/libcooklang_bindings.so"
+    def configPath = "${rustBasePath}/bindings/uniffi.toml"
+    def generateBindings = tasks.register("generate${variant.name.capitalize()}UniFFIBindings", Exec) {
+        workingDir "${rustBasePath}/bindings"
+        commandLine 'cargo', 'run', '--features=uniffi/cli', '--bin', 'uniffi-bindgen', 'generate', '--config', configPath, '--library', libPath, '--language', 'kotlin', '--out-dir', uniffiPath
+    }
+    variant.javaCompileProvider.get().dependsOn(generateBindings)
+    def sourceSet = variant.sourceSets.find { it.name == variant.name }
+    sourceSet.java.srcDir new File(uniffiPath)
+}
+
+
+archTriplets.each { arch, target ->
+    project.ext.cargo_target_directory = rustBasePath + "/target"
+    // Build with cargo
+    tasks.create(name: "cargo-build-${arch}", type: Exec, description: "Building core for ${arch}") {
+        workingDir "${rustBasePath}/bindings"
+        commandLine 'cargo', 'build', '--lib', "--target=${target}", '--release'
+    }
+
+    tasks.create(name: "sync-rust-deps-${arch}", type: Sync, dependsOn: "cargo-build-${arch}") {
+        from "${project.ext.cargo_target_directory}/${archTriplets[arch]}/release"
+        include "*.so"
+        into "src/main/jniLibs/${arch}"
+    }
+
+    tasks.withType(JavaCompile) {
+        compileTask -> compileTask.dependsOn "sync-rust-deps-${arch}"
+    }
+    preBuild.dependsOn "sync-rust-deps-${arch}"
+
+    // Hook up clean tasks
+    tasks.create(name: "clean-${arch}", type: Delete, description: "Deleting built libs for ${arch}") {
+        delete fileTree("${project.ext.cargo_target_directory}/${archTriplets[arch]}/release") {
+            include '*.so'
+        }
+    }
+    clean.dependsOn "clean-${arch}"
+}

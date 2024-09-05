@@ -13,3 +13,7 @@
 .externalNativeBuild
 .cxx
 local.properties
+gpr.properties
+
+sync/src/main/jniLibs
+parser/src/main/jniLibs

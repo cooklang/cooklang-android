@@ -20,12 +20,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.cooklang.sample_app.ui.theme.CooklangSampleAppTheme
-import uniffi.cooklang_bindings.AisleConf
-import uniffi.cooklang_bindings.CooklangRecipe
-import uniffi.cooklang_bindings.combineIngredientLists
-import uniffi.cooklang_bindings.parseAisleConfig
-import uniffi.cooklang_bindings.parseRecipe
-import uniffi.cooklang_sync_client.run
+import org.cooklang.parser.AisleConf
+import org.cooklang.parser.CooklangRecipe
+import org.cooklang.parser.combineIngredientLists
+import org.cooklang.parser.parseAisleConfig
+import org.cooklang.parser.parseRecipe
+import org.cooklang.sync.run
 import java.io.File
 
 
@@ -74,7 +74,7 @@ class MainActivity : ComponentActivity() {
             if (!recipesDirectory.exists()) {
                 recipesDirectory.mkdir()
             }
-            run(recipesDirectory.getAbsolutePath(), dbFile.getAbsolutePath(), "https://platform.cooklang.org/api", "hehe", false)
+            run(recipesDirectory.getAbsolutePath(), dbFile.getAbsolutePath(), "https://platform.cooklang.org/api", "hehe", 1, true)
         }
         thread.start()
 
