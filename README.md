@@ -21,9 +21,9 @@ Step 1. Include jitpack.io into your repositories in root `settings.gradle`:
 
 Step 2. Add a dependency to relevant `build.gradle` config (change release version if required) :
 
-   dependencies {
-	implementation 'com.github.cooklang:parser:0.0.1'
-	implementation 'com.github.cooklang:sync:0.0.1'
-   }
+	   dependencies {
+		implementation 'com.github.cooklang:parser:0.0.1'
+		implementation 'com.github.cooklang:sync:0.0.1'
+	   }
     
 Step 3. Use the parser and sync. See [example](https://github.com/cooklang/cooklang-android/blob/main/app/src/main/java/org/cooklang/sample_app/MainActivity.kt#L22-L76).
