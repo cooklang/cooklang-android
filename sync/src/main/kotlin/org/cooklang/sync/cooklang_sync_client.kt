@@ -34,6 +34,9 @@ import java.util.concurrent.atomic.AtomicLong
 // A rust-owned buffer is represented by its capacity, its current length, and a
 // pointer to the underlying data.
 
+/**
+ * @suppress
+ */
 @Structure.FieldOrder("capacity", "len", "data")
 open class RustBuffer : Structure() {
     // Note: `capacity` and `len` are actually `ULong` values, but JVM only supports signed values.
@@ -95,6 +98,8 @@ open class RustBuffer : Structure() {
  * Required for callbacks taking in an out pointer.
  *
  * Size is the sum of all values in the struct.
+ *
+ * @suppress
  */
 class RustBufferByReference : ByReference(16) {
     /**
@@ -129,7 +134,7 @@ class RustBufferByReference : ByReference(16) {
 // completeness.
 
 @Structure.FieldOrder("len", "data")
-open class ForeignBytes : Structure() {
+internal open class ForeignBytes : Structure() {
     @JvmField var len: Int = 0
 
     @JvmField var data: Pointer? = null
@@ -137,10 +142,14 @@ open class ForeignBytes : Structure() {
     class ByValue : ForeignBytes(), Structure.ByValue
 }
 
-// The FfiConverter interface handles converter types to and from the FFI
-//
-// All implementing objects should be public to support external types.  When a
-// type is external we need to import it's FfiConverter.
+/**
+ * The FfiConverter interface handles converter types to and from the FFI
+ *
+ * All implementing objects should be public to support external types.  When a
+ * type is external we need to import it's FfiConverter.
+ *
+ * @suppress
+ */
 public interface FfiConverter<KotlinType, FfiType> {
     // Convert an FFI type to a Kotlin type
     fun lift(value: FfiType): KotlinType
@@ -207,7 +216,11 @@ public interface FfiConverter<KotlinType, FfiType> {
     }
 }
 
-// FfiConverter that uses `RustBuffer` as the FfiType
+/**
+ * FfiConverter that uses `RustBuffer` as the FfiType
+ *
+ * @suppress
+ */
 public interface FfiConverterRustBuffer<KotlinType> : FfiConverter<KotlinType, RustBuffer.ByValue> {
     override fun lift(value: RustBuffer.ByValue) = liftFromRustBuffer(value)
 
@@ -255,7 +268,11 @@ internal open class UniffiRustCallStatus : Structure() {
 
 class InternalException(message: String) : kotlin.Exception(message)
 
-// Each top-level error class has a companion object that can lift the error from the call status's rust buffer
+/**
+ * Each top-level error class has a companion object that can lift the error from the call status's rust buffer
+ *
+ * @suppress
+ */
 interface UniffiRustCallStatusErrorHandler<E> {
     fun lift(error_buf: RustBuffer.ByValue): E
 }
@@ -298,7 +315,11 @@ private fun <E : kotlin.Exception> uniffiCheckCallStatus(
     }
 }
 
-// UniffiRustCallStatusErrorHandler implementation for times when we don't expect a CALL_ERROR
+/**
+ * UniffiRustCallStatusErrorHandler implementation for times when we don't expect a CALL_ERROR
+ *
+ * @suppress
+ */
 object UniffiNullRustCallStatusErrorHandler : UniffiRustCallStatusErrorHandler<InternalException> {
     override fun lift(error_buf: RustBuffer.ByValue): InternalException {
         RustBuffer.free(error_buf)
@@ -759,7 +780,7 @@ internal interface UniffiLib : Library {
     fun uniffi_cooklang_sync_client_fn_func_wait_remote_update(
         `apiEndpoint`: RustBuffer.ByValue,
         `remoteToken`: RustBuffer.ByValue,
-        `waitTime`: Int,
+        `waitTime`: Long,
         uniffi_out_err: UniffiRustCallStatus,
     ): Unit
 
@@ -1011,7 +1032,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_cooklang_sync_client_checksum_func_run_upload_once() != 50094.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_cooklang_sync_client_checksum_func_wait_remote_update() != 8259.toShort()) {
+    if (lib.uniffi_cooklang_sync_client_checksum_func_wait_remote_update() != 53618.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
@@ -1039,6 +1060,9 @@ interface Disposable {
     }
 }
 
+/**
+ * @suppress
+ */
 inline fun <T : Disposable?, R> T.use(block: (T) -> R) =
     try {
         block(this)
@@ -1051,9 +1075,16 @@ inline fun <T : Disposable?, R> T.use(block: (T) -> R) =
         }
     }
 
-/** Used to instantiate an interface without an actual pointer, for fakes in tests, mostly. */
+/**
+ * Used to instantiate an interface without an actual pointer, for fakes in tests, mostly.
+ *
+ * @suppress
+ * */
 object NoPointer
 
+/**
+ * @suppress
+ */
 public object FfiConverterInt : FfiConverter<Int, Int> {
     override fun lift(value: Int): Int {
         return value
@@ -1077,6 +1108,35 @@ public object FfiConverterInt : FfiConverter<Int, Int> {
     }
 }
 
+/**
+ * @suppress
+ */
+public object FfiConverterULong : FfiConverter<ULong, Long> {
+    override fun lift(value: Long): ULong {
+        return value.toULong()
+    }
+
+    override fun read(buf: ByteBuffer): ULong {
+        return lift(buf.getLong())
+    }
+
+    override fun lower(value: ULong): Long {
+        return value.toLong()
+    }
+
+    override fun allocationSize(value: ULong) = 8UL
+
+    override fun write(
+        value: ULong,
+        buf: ByteBuffer,
+    ) {
+        buf.putLong(value.toLong())
+    }
+}
+
+/**
+ * @suppress
+ */
 public object FfiConverterBoolean : FfiConverter<Boolean, Byte> {
     override fun lift(value: Byte): Boolean {
         return value.toInt() != 0
@@ -1100,6 +1160,9 @@ public object FfiConverterBoolean : FfiConverter<Boolean, Byte> {
     }
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterString : FfiConverter<String, RustBuffer.ByValue> {
     // Note: we don't inherit from FfiConverterRustBuffer, because we use a
     // special encoding when lowering/lifting.  We can use `RustBuffer.len` to
@@ -1190,11 +1253,16 @@ sealed class SyncException(message: String) : kotlin.Exception(message) {
 
     class Unknown(message: String) : SyncException(message)
 
+    class BatchDownloadException(message: String) : SyncException(message)
+
     companion object ErrorHandler : UniffiRustCallStatusErrorHandler<SyncException> {
         override fun lift(error_buf: RustBuffer.ByValue): SyncException = FfiConverterTypeSyncError.lift(error_buf)
     }
 }
 
+/**
+ * @suppress
+ */
 public object FfiConverterTypeSyncError : FfiConverterRustBuffer<SyncException> {
     override fun read(buf: ByteBuffer): SyncException {
         return when (buf.getInt()) {
@@ -1214,6 +1282,7 @@ public object FfiConverterTypeSyncError : FfiConverterRustBuffer<SyncException> 
             14 -> SyncException.GetFromCacheException(FfiConverterString.read(buf))
             15 -> SyncException.UnlistedFileFormat(FfiConverterString.read(buf))
             16 -> SyncException.Unknown(FfiConverterString.read(buf))
+            17 -> SyncException.BatchDownloadException(FfiConverterString.read(buf))
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
     }
@@ -1289,6 +1358,10 @@ public object FfiConverterTypeSyncError : FfiConverterRustBuffer<SyncException> 
             }
             is SyncException.Unknown -> {
                 buf.putInt(16)
+                Unit
+            }
+            is SyncException.BatchDownloadException -> {
+                buf.putInt(17)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -1375,12 +1448,12 @@ fun `runUploadOnce`(
 fun `waitRemoteUpdate`(
     `apiEndpoint`: kotlin.String,
     `remoteToken`: kotlin.String,
-    `waitTime`: kotlin.Int,
+    `waitTime`: kotlin.ULong,
 ) = uniffiRustCallWithError(SyncException) { _status ->
     UniffiLib.INSTANCE.uniffi_cooklang_sync_client_fn_func_wait_remote_update(
         FfiConverterString.lower(`apiEndpoint`),
         FfiConverterString.lower(`remoteToken`),
-        FfiConverterInt.lower(`waitTime`),
+        FfiConverterULong.lower(`waitTime`),
         _status,
     )
 }
