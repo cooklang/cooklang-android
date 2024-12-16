@@ -752,8 +752,38 @@ internal interface UniffiLib : Library {
         uniffi_out_err: UniffiRustCallStatus,
     ): RustBuffer.ByValue
 
-    fun uniffi_cooklang_bindings_fn_func_combine_ingredient_lists(
-        `lists`: RustBuffer.ByValue,
+    fun uniffi_cooklang_bindings_fn_func_combine_ingredients(
+        `ingredients`: RustBuffer.ByValue,
+        uniffi_out_err: UniffiRustCallStatus,
+    ): RustBuffer.ByValue
+
+    fun uniffi_cooklang_bindings_fn_func_combine_ingredients_selected(
+        `ingredients`: RustBuffer.ByValue,
+        `indices`: RustBuffer.ByValue,
+        uniffi_out_err: UniffiRustCallStatus,
+    ): RustBuffer.ByValue
+
+    fun uniffi_cooklang_bindings_fn_func_deref_component(
+        `recipe`: RustBuffer.ByValue,
+        `item`: RustBuffer.ByValue,
+        uniffi_out_err: UniffiRustCallStatus,
+    ): RustBuffer.ByValue
+
+    fun uniffi_cooklang_bindings_fn_func_deref_cookware(
+        `recipe`: RustBuffer.ByValue,
+        `index`: Int,
+        uniffi_out_err: UniffiRustCallStatus,
+    ): RustBuffer.ByValue
+
+    fun uniffi_cooklang_bindings_fn_func_deref_ingredient(
+        `recipe`: RustBuffer.ByValue,
+        `index`: Int,
+        uniffi_out_err: UniffiRustCallStatus,
+    ): RustBuffer.ByValue
+
+    fun uniffi_cooklang_bindings_fn_func_deref_timer(
+        `recipe`: RustBuffer.ByValue,
+        `index`: Int,
         uniffi_out_err: UniffiRustCallStatus,
     ): RustBuffer.ByValue
 
@@ -988,7 +1018,17 @@ internal interface UniffiLib : Library {
         uniffi_out_err: UniffiRustCallStatus,
     ): Unit
 
-    fun uniffi_cooklang_bindings_checksum_func_combine_ingredient_lists(): Short
+    fun uniffi_cooklang_bindings_checksum_func_combine_ingredients(): Short
+
+    fun uniffi_cooklang_bindings_checksum_func_combine_ingredients_selected(): Short
+
+    fun uniffi_cooklang_bindings_checksum_func_deref_component(): Short
+
+    fun uniffi_cooklang_bindings_checksum_func_deref_cookware(): Short
+
+    fun uniffi_cooklang_bindings_checksum_func_deref_ingredient(): Short
+
+    fun uniffi_cooklang_bindings_checksum_func_deref_timer(): Short
 
     fun uniffi_cooklang_bindings_checksum_func_parse_aisle_config(): Short
 
@@ -1013,7 +1053,22 @@ private fun uniffiCheckContractApiVersion(lib: UniffiLib) {
 
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: UniffiLib) {
-    if (lib.uniffi_cooklang_bindings_checksum_func_combine_ingredient_lists() != 48727.toShort()) {
+    if (lib.uniffi_cooklang_bindings_checksum_func_combine_ingredients() != 48221.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_cooklang_bindings_checksum_func_combine_ingredients_selected() != 56749.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_cooklang_bindings_checksum_func_deref_component() != 22158.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_cooklang_bindings_checksum_func_deref_cookware() != 9760.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_cooklang_bindings_checksum_func_deref_ingredient() != 50661.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_cooklang_bindings_checksum_func_deref_timer() != 50822.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_cooklang_bindings_checksum_func_parse_aisle_config() != 49190.toShort()) {
@@ -1067,6 +1122,29 @@ inline fun <T : Disposable?, R> T.use(block: (T) -> R) =
 
 /** Used to instantiate an interface without an actual pointer, for fakes in tests, mostly. */
 object NoPointer
+
+public object FfiConverterUInt : FfiConverter<UInt, Int> {
+    override fun lift(value: Int): UInt {
+        return value.toUInt()
+    }
+
+    override fun read(buf: ByteBuffer): UInt {
+        return lift(buf.getInt())
+    }
+
+    override fun lower(value: UInt): Int {
+        return value.toInt()
+    }
+
+    override fun allocationSize(value: UInt) = 4UL
+
+    override fun write(
+        value: UInt,
+        buf: ByteBuffer,
+    ) {
+        buf.putInt(value.toInt())
+    }
+}
 
 public object FfiConverterDouble : FfiConverter<Double, Double> {
     override fun lift(value: Double): Double {
@@ -1531,11 +1609,38 @@ public object FfiConverterTypeAmount : FfiConverterRustBuffer<Amount> {
     }
 }
 
+data class BlockNote(
+    val `text`: kotlin.String,
+) {
+    companion object
+}
+
+public object FfiConverterTypeBlockNote : FfiConverterRustBuffer<BlockNote> {
+    override fun read(buf: ByteBuffer): BlockNote {
+        return BlockNote(
+            FfiConverterString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: BlockNote) =
+        (
+            FfiConverterString.allocationSize(value.`text`)
+        )
+
+    override fun write(
+        value: BlockNote,
+        buf: ByteBuffer,
+    ) {
+        FfiConverterString.write(value.`text`, buf)
+    }
+}
+
 data class CooklangRecipe(
     val `metadata`: Map<kotlin.String, kotlin.String>,
-    val `steps`: List<Step>,
-    val `ingredients`: Map<kotlin.String, Map<GroupedQuantityKey, Value>>,
-    val `cookware`: List<Item>,
+    val `sections`: List<Section>,
+    val `ingredients`: List<Ingredient>,
+    val `cookware`: List<Cookware>,
+    val `timers`: List<Timer>,
 ) {
     companion object
 }
@@ -1544,18 +1649,20 @@ public object FfiConverterTypeCooklangRecipe : FfiConverterRustBuffer<CooklangRe
     override fun read(buf: ByteBuffer): CooklangRecipe {
         return CooklangRecipe(
             FfiConverterMapStringString.read(buf),
-            FfiConverterSequenceTypeStep.read(buf),
-            FfiConverterMapStringMapTypeGroupedQuantityKeyTypeValue.read(buf),
-            FfiConverterSequenceTypeItem.read(buf),
+            FfiConverterSequenceTypeSection.read(buf),
+            FfiConverterSequenceTypeIngredient.read(buf),
+            FfiConverterSequenceTypeCookware.read(buf),
+            FfiConverterSequenceTypeTimer.read(buf),
         )
     }
 
     override fun allocationSize(value: CooklangRecipe) =
         (
             FfiConverterMapStringString.allocationSize(value.`metadata`) +
-                FfiConverterSequenceTypeStep.allocationSize(value.`steps`) +
-                FfiConverterMapStringMapTypeGroupedQuantityKeyTypeValue.allocationSize(value.`ingredients`) +
-                FfiConverterSequenceTypeItem.allocationSize(value.`cookware`)
+                FfiConverterSequenceTypeSection.allocationSize(value.`sections`) +
+                FfiConverterSequenceTypeIngredient.allocationSize(value.`ingredients`) +
+                FfiConverterSequenceTypeCookware.allocationSize(value.`cookware`) +
+                FfiConverterSequenceTypeTimer.allocationSize(value.`timers`)
         )
 
     override fun write(
@@ -1563,9 +1670,40 @@ public object FfiConverterTypeCooklangRecipe : FfiConverterRustBuffer<CooklangRe
         buf: ByteBuffer,
     ) {
         FfiConverterMapStringString.write(value.`metadata`, buf)
-        FfiConverterSequenceTypeStep.write(value.`steps`, buf)
-        FfiConverterMapStringMapTypeGroupedQuantityKeyTypeValue.write(value.`ingredients`, buf)
-        FfiConverterSequenceTypeItem.write(value.`cookware`, buf)
+        FfiConverterSequenceTypeSection.write(value.`sections`, buf)
+        FfiConverterSequenceTypeIngredient.write(value.`ingredients`, buf)
+        FfiConverterSequenceTypeCookware.write(value.`cookware`, buf)
+        FfiConverterSequenceTypeTimer.write(value.`timers`, buf)
+    }
+}
+
+data class Cookware(
+    val `name`: kotlin.String,
+    val `amount`: Amount?,
+) {
+    companion object
+}
+
+public object FfiConverterTypeCookware : FfiConverterRustBuffer<Cookware> {
+    override fun read(buf: ByteBuffer): Cookware {
+        return Cookware(
+            FfiConverterString.read(buf),
+            FfiConverterOptionalTypeAmount.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: Cookware) =
+        (
+            FfiConverterString.allocationSize(value.`name`) +
+                FfiConverterOptionalTypeAmount.allocationSize(value.`amount`)
+        )
+
+    override fun write(
+        value: Cookware,
+        buf: ByteBuffer,
+    ) {
+        FfiConverterString.write(value.`name`, buf)
+        FfiConverterOptionalTypeAmount.write(value.`amount`, buf)
     }
 }
 
@@ -1599,8 +1737,87 @@ public object FfiConverterTypeGroupedQuantityKey : FfiConverterRustBuffer<Groupe
     }
 }
 
+data class Ingredient(
+    val `name`: kotlin.String,
+    val `amount`: Amount?,
+    val `descriptor`: kotlin.String?,
+) {
+    companion object
+}
+
+public object FfiConverterTypeIngredient : FfiConverterRustBuffer<Ingredient> {
+    override fun read(buf: ByteBuffer): Ingredient {
+        return Ingredient(
+            FfiConverterString.read(buf),
+            FfiConverterOptionalTypeAmount.read(buf),
+            FfiConverterOptionalString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: Ingredient) =
+        (
+            FfiConverterString.allocationSize(value.`name`) +
+                FfiConverterOptionalTypeAmount.allocationSize(value.`amount`) +
+                FfiConverterOptionalString.allocationSize(value.`descriptor`)
+        )
+
+    override fun write(
+        value: Ingredient,
+        buf: ByteBuffer,
+    ) {
+        FfiConverterString.write(value.`name`, buf)
+        FfiConverterOptionalTypeAmount.write(value.`amount`, buf)
+        FfiConverterOptionalString.write(value.`descriptor`, buf)
+    }
+}
+
+data class Section(
+    val `title`: kotlin.String?,
+    val `blocks`: List<Block>,
+    val `ingredientRefs`: List<kotlin.UInt>,
+    val `cookwareRefs`: List<kotlin.UInt>,
+    val `timerRefs`: List<kotlin.UInt>,
+) {
+    companion object
+}
+
+public object FfiConverterTypeSection : FfiConverterRustBuffer<Section> {
+    override fun read(buf: ByteBuffer): Section {
+        return Section(
+            FfiConverterOptionalString.read(buf),
+            FfiConverterSequenceTypeBlock.read(buf),
+            FfiConverterSequenceUInt.read(buf),
+            FfiConverterSequenceUInt.read(buf),
+            FfiConverterSequenceUInt.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: Section) =
+        (
+            FfiConverterOptionalString.allocationSize(value.`title`) +
+                FfiConverterSequenceTypeBlock.allocationSize(value.`blocks`) +
+                FfiConverterSequenceUInt.allocationSize(value.`ingredientRefs`) +
+                FfiConverterSequenceUInt.allocationSize(value.`cookwareRefs`) +
+                FfiConverterSequenceUInt.allocationSize(value.`timerRefs`)
+        )
+
+    override fun write(
+        value: Section,
+        buf: ByteBuffer,
+    ) {
+        FfiConverterOptionalString.write(value.`title`, buf)
+        FfiConverterSequenceTypeBlock.write(value.`blocks`, buf)
+        FfiConverterSequenceUInt.write(value.`ingredientRefs`, buf)
+        FfiConverterSequenceUInt.write(value.`cookwareRefs`, buf)
+        FfiConverterSequenceUInt.write(value.`timerRefs`, buf)
+    }
+}
+
 data class Step(
     val `items`: List<Item>,
+    val `ingredientRefs`: List<kotlin.UInt>,
+    val `cookwareRefs`: List<kotlin.UInt>,
+    val `timerRefs`: List<kotlin.UInt>,
 ) {
     companion object
 }
@@ -1609,12 +1826,18 @@ public object FfiConverterTypeStep : FfiConverterRustBuffer<Step> {
     override fun read(buf: ByteBuffer): Step {
         return Step(
             FfiConverterSequenceTypeItem.read(buf),
+            FfiConverterSequenceUInt.read(buf),
+            FfiConverterSequenceUInt.read(buf),
+            FfiConverterSequenceUInt.read(buf),
         )
     }
 
     override fun allocationSize(value: Step) =
         (
-            FfiConverterSequenceTypeItem.allocationSize(value.`items`)
+            FfiConverterSequenceTypeItem.allocationSize(value.`items`) +
+                FfiConverterSequenceUInt.allocationSize(value.`ingredientRefs`) +
+                FfiConverterSequenceUInt.allocationSize(value.`cookwareRefs`) +
+                FfiConverterSequenceUInt.allocationSize(value.`timerRefs`)
         )
 
     override fun write(
@@ -1622,6 +1845,219 @@ public object FfiConverterTypeStep : FfiConverterRustBuffer<Step> {
         buf: ByteBuffer,
     ) {
         FfiConverterSequenceTypeItem.write(value.`items`, buf)
+        FfiConverterSequenceUInt.write(value.`ingredientRefs`, buf)
+        FfiConverterSequenceUInt.write(value.`cookwareRefs`, buf)
+        FfiConverterSequenceUInt.write(value.`timerRefs`, buf)
+    }
+}
+
+data class Timer(
+    val `name`: kotlin.String?,
+    val `amount`: Amount?,
+) {
+    companion object
+}
+
+public object FfiConverterTypeTimer : FfiConverterRustBuffer<Timer> {
+    override fun read(buf: ByteBuffer): Timer {
+        return Timer(
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalTypeAmount.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: Timer) =
+        (
+            FfiConverterOptionalString.allocationSize(value.`name`) +
+                FfiConverterOptionalTypeAmount.allocationSize(value.`amount`)
+        )
+
+    override fun write(
+        value: Timer,
+        buf: ByteBuffer,
+    ) {
+        FfiConverterOptionalString.write(value.`name`, buf)
+        FfiConverterOptionalTypeAmount.write(value.`amount`, buf)
+    }
+}
+
+sealed class Block {
+    data class StepBlock(
+        val v1: Step,
+    ) : Block() {
+        companion object
+    }
+
+    data class NoteBlock(
+        val v1: BlockNote,
+    ) : Block() {
+        companion object
+    }
+
+    companion object
+}
+
+public object FfiConverterTypeBlock : FfiConverterRustBuffer<Block> {
+    override fun read(buf: ByteBuffer): Block {
+        return when (buf.getInt()) {
+            1 ->
+                Block.StepBlock(
+                    FfiConverterTypeStep.read(buf),
+                )
+            2 ->
+                Block.NoteBlock(
+                    FfiConverterTypeBlockNote.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: Block) =
+        when (value) {
+            is Block.StepBlock -> {
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                (
+                    4UL +
+                        FfiConverterTypeStep.allocationSize(value.v1)
+                )
+            }
+            is Block.NoteBlock -> {
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                (
+                    4UL +
+                        FfiConverterTypeBlockNote.allocationSize(value.v1)
+                )
+            }
+        }
+
+    override fun write(
+        value: Block,
+        buf: ByteBuffer,
+    ) {
+        when (value) {
+            is Block.StepBlock -> {
+                buf.putInt(1)
+                FfiConverterTypeStep.write(value.v1, buf)
+                Unit
+            }
+            is Block.NoteBlock -> {
+                buf.putInt(2)
+                FfiConverterTypeBlockNote.write(value.v1, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+sealed class Component {
+    data class IngredientComponent(
+        val v1: Ingredient,
+    ) : Component() {
+        companion object
+    }
+
+    data class CookwareComponent(
+        val v1: Cookware,
+    ) : Component() {
+        companion object
+    }
+
+    data class TimerComponent(
+        val v1: Timer,
+    ) : Component() {
+        companion object
+    }
+
+    data class TextComponent(
+        val v1: kotlin.String,
+    ) : Component() {
+        companion object
+    }
+
+    companion object
+}
+
+public object FfiConverterTypeComponent : FfiConverterRustBuffer<Component> {
+    override fun read(buf: ByteBuffer): Component {
+        return when (buf.getInt()) {
+            1 ->
+                Component.IngredientComponent(
+                    FfiConverterTypeIngredient.read(buf),
+                )
+            2 ->
+                Component.CookwareComponent(
+                    FfiConverterTypeCookware.read(buf),
+                )
+            3 ->
+                Component.TimerComponent(
+                    FfiConverterTypeTimer.read(buf),
+                )
+            4 ->
+                Component.TextComponent(
+                    FfiConverterString.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: Component) =
+        when (value) {
+            is Component.IngredientComponent -> {
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                (
+                    4UL +
+                        FfiConverterTypeIngredient.allocationSize(value.v1)
+                )
+            }
+            is Component.CookwareComponent -> {
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                (
+                    4UL +
+                        FfiConverterTypeCookware.allocationSize(value.v1)
+                )
+            }
+            is Component.TimerComponent -> {
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                (
+                    4UL +
+                        FfiConverterTypeTimer.allocationSize(value.v1)
+                )
+            }
+            is Component.TextComponent -> {
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                (
+                    4UL +
+                        FfiConverterString.allocationSize(value.v1)
+                )
+            }
+        }
+
+    override fun write(
+        value: Component,
+        buf: ByteBuffer,
+    ) {
+        when (value) {
+            is Component.IngredientComponent -> {
+                buf.putInt(1)
+                FfiConverterTypeIngredient.write(value.v1, buf)
+                Unit
+            }
+            is Component.CookwareComponent -> {
+                buf.putInt(2)
+                FfiConverterTypeCookware.write(value.v1, buf)
+                Unit
+            }
+            is Component.TimerComponent -> {
+                buf.putInt(3)
+                FfiConverterTypeTimer.write(value.v1, buf)
+                Unit
+            }
+            is Component.TextComponent -> {
+                buf.putInt(4)
+                FfiConverterString.write(value.v1, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
     }
 }
 
@@ -1632,23 +2068,20 @@ sealed class Item {
         companion object
     }
 
-    data class Ingredient(
-        val `name`: kotlin.String,
-        val `amount`: Amount?,
+    data class IngredientRef(
+        val `index`: kotlin.UInt,
     ) : Item() {
         companion object
     }
 
-    data class Cookware(
-        val `name`: kotlin.String,
-        val `amount`: Amount?,
+    data class CookwareRef(
+        val `index`: kotlin.UInt,
     ) : Item() {
         companion object
     }
 
-    data class Timer(
-        val `name`: kotlin.String?,
-        val `amount`: Amount?,
+    data class TimerRef(
+        val `index`: kotlin.UInt,
     ) : Item() {
         companion object
     }
@@ -1664,19 +2097,16 @@ public object FfiConverterTypeItem : FfiConverterRustBuffer<Item> {
                     FfiConverterString.read(buf),
                 )
             2 ->
-                Item.Ingredient(
-                    FfiConverterString.read(buf),
-                    FfiConverterOptionalTypeAmount.read(buf),
+                Item.IngredientRef(
+                    FfiConverterUInt.read(buf),
                 )
             3 ->
-                Item.Cookware(
-                    FfiConverterString.read(buf),
-                    FfiConverterOptionalTypeAmount.read(buf),
+                Item.CookwareRef(
+                    FfiConverterUInt.read(buf),
                 )
             4 ->
-                Item.Timer(
-                    FfiConverterOptionalString.read(buf),
-                    FfiConverterOptionalTypeAmount.read(buf),
+                Item.TimerRef(
+                    FfiConverterUInt.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
         }
@@ -1691,28 +2121,25 @@ public object FfiConverterTypeItem : FfiConverterRustBuffer<Item> {
                         FfiConverterString.allocationSize(value.`value`)
                 )
             }
-            is Item.Ingredient -> {
+            is Item.IngredientRef -> {
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
                 (
                     4UL +
-                        FfiConverterString.allocationSize(value.`name`) +
-                        FfiConverterOptionalTypeAmount.allocationSize(value.`amount`)
+                        FfiConverterUInt.allocationSize(value.`index`)
                 )
             }
-            is Item.Cookware -> {
+            is Item.CookwareRef -> {
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
                 (
                     4UL +
-                        FfiConverterString.allocationSize(value.`name`) +
-                        FfiConverterOptionalTypeAmount.allocationSize(value.`amount`)
+                        FfiConverterUInt.allocationSize(value.`index`)
                 )
             }
-            is Item.Timer -> {
+            is Item.TimerRef -> {
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
                 (
                     4UL +
-                        FfiConverterOptionalString.allocationSize(value.`name`) +
-                        FfiConverterOptionalTypeAmount.allocationSize(value.`amount`)
+                        FfiConverterUInt.allocationSize(value.`index`)
                 )
             }
         }
@@ -1727,22 +2154,19 @@ public object FfiConverterTypeItem : FfiConverterRustBuffer<Item> {
                 FfiConverterString.write(value.`value`, buf)
                 Unit
             }
-            is Item.Ingredient -> {
+            is Item.IngredientRef -> {
                 buf.putInt(2)
-                FfiConverterString.write(value.`name`, buf)
-                FfiConverterOptionalTypeAmount.write(value.`amount`, buf)
+                FfiConverterUInt.write(value.`index`, buf)
                 Unit
             }
-            is Item.Cookware -> {
+            is Item.CookwareRef -> {
                 buf.putInt(3)
-                FfiConverterString.write(value.`name`, buf)
-                FfiConverterOptionalTypeAmount.write(value.`amount`, buf)
+                FfiConverterUInt.write(value.`index`, buf)
                 Unit
             }
-            is Item.Timer -> {
+            is Item.TimerRef -> {
                 buf.putInt(4)
-                FfiConverterOptionalString.write(value.`name`, buf)
-                FfiConverterOptionalTypeAmount.write(value.`amount`, buf)
+                FfiConverterUInt.write(value.`index`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -1942,6 +2366,31 @@ public object FfiConverterOptionalTypeAmount : FfiConverterRustBuffer<Amount?> {
     }
 }
 
+public object FfiConverterSequenceUInt : FfiConverterRustBuffer<List<kotlin.UInt>> {
+    override fun read(buf: ByteBuffer): List<kotlin.UInt> {
+        val len = buf.getInt()
+        return List<kotlin.UInt>(len) {
+            FfiConverterUInt.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<kotlin.UInt>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterUInt.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(
+        value: List<kotlin.UInt>,
+        buf: ByteBuffer,
+    ) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterUInt.write(it, buf)
+        }
+    }
+}
+
 public object FfiConverterSequenceString : FfiConverterRustBuffer<List<kotlin.String>> {
     override fun read(buf: ByteBuffer): List<kotlin.String> {
         val len = buf.getInt()
@@ -1992,27 +2441,127 @@ public object FfiConverterSequenceTypeAisleIngredient : FfiConverterRustBuffer<L
     }
 }
 
-public object FfiConverterSequenceTypeStep : FfiConverterRustBuffer<List<Step>> {
-    override fun read(buf: ByteBuffer): List<Step> {
+public object FfiConverterSequenceTypeCookware : FfiConverterRustBuffer<List<Cookware>> {
+    override fun read(buf: ByteBuffer): List<Cookware> {
         val len = buf.getInt()
-        return List<Step>(len) {
-            FfiConverterTypeStep.read(buf)
+        return List<Cookware>(len) {
+            FfiConverterTypeCookware.read(buf)
         }
     }
 
-    override fun allocationSize(value: List<Step>): ULong {
+    override fun allocationSize(value: List<Cookware>): ULong {
         val sizeForLength = 4UL
-        val sizeForItems = value.map { FfiConverterTypeStep.allocationSize(it) }.sum()
+        val sizeForItems = value.map { FfiConverterTypeCookware.allocationSize(it) }.sum()
         return sizeForLength + sizeForItems
     }
 
     override fun write(
-        value: List<Step>,
+        value: List<Cookware>,
         buf: ByteBuffer,
     ) {
         buf.putInt(value.size)
         value.iterator().forEach {
-            FfiConverterTypeStep.write(it, buf)
+            FfiConverterTypeCookware.write(it, buf)
+        }
+    }
+}
+
+public object FfiConverterSequenceTypeIngredient : FfiConverterRustBuffer<List<Ingredient>> {
+    override fun read(buf: ByteBuffer): List<Ingredient> {
+        val len = buf.getInt()
+        return List<Ingredient>(len) {
+            FfiConverterTypeIngredient.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<Ingredient>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeIngredient.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(
+        value: List<Ingredient>,
+        buf: ByteBuffer,
+    ) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeIngredient.write(it, buf)
+        }
+    }
+}
+
+public object FfiConverterSequenceTypeSection : FfiConverterRustBuffer<List<Section>> {
+    override fun read(buf: ByteBuffer): List<Section> {
+        val len = buf.getInt()
+        return List<Section>(len) {
+            FfiConverterTypeSection.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<Section>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeSection.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(
+        value: List<Section>,
+        buf: ByteBuffer,
+    ) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeSection.write(it, buf)
+        }
+    }
+}
+
+public object FfiConverterSequenceTypeTimer : FfiConverterRustBuffer<List<Timer>> {
+    override fun read(buf: ByteBuffer): List<Timer> {
+        val len = buf.getInt()
+        return List<Timer>(len) {
+            FfiConverterTypeTimer.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<Timer>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeTimer.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(
+        value: List<Timer>,
+        buf: ByteBuffer,
+    ) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeTimer.write(it, buf)
+        }
+    }
+}
+
+public object FfiConverterSequenceTypeBlock : FfiConverterRustBuffer<List<Block>> {
+    override fun read(buf: ByteBuffer): List<Block> {
+        val len = buf.getInt()
+        return List<Block>(len) {
+            FfiConverterTypeBlock.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<Block>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeBlock.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(
+        value: List<Block>,
+        buf: ByteBuffer,
+    ) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeBlock.write(it, buf)
         }
     }
 }
@@ -2038,31 +2587,6 @@ public object FfiConverterSequenceTypeItem : FfiConverterRustBuffer<List<Item>> 
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterTypeItem.write(it, buf)
-        }
-    }
-}
-
-public object FfiConverterSequenceMapStringMapTypeGroupedQuantityKeyTypeValue : FfiConverterRustBuffer<List<Map<kotlin.String, Map<GroupedQuantityKey, Value>>>> {
-    override fun read(buf: ByteBuffer): List<Map<kotlin.String, Map<GroupedQuantityKey, Value>>> {
-        val len = buf.getInt()
-        return List<Map<kotlin.String, Map<GroupedQuantityKey, Value>>>(len) {
-            FfiConverterMapStringMapTypeGroupedQuantityKeyTypeValue.read(buf)
-        }
-    }
-
-    override fun allocationSize(value: List<Map<kotlin.String, Map<GroupedQuantityKey, Value>>>): ULong {
-        val sizeForLength = 4UL
-        val sizeForItems = value.map { FfiConverterMapStringMapTypeGroupedQuantityKeyTypeValue.allocationSize(it) }.sum()
-        return sizeForLength + sizeForItems
-    }
-
-    override fun write(
-        value: List<Map<kotlin.String, Map<GroupedQuantityKey, Value>>>,
-        buf: ByteBuffer,
-    ) {
-        buf.putInt(value.size)
-        value.iterator().forEach {
-            FfiConverterMapStringMapTypeGroupedQuantityKeyTypeValue.write(it, buf)
         }
     }
 }
@@ -2178,13 +2702,86 @@ public object FfiConverterMapTypeGroupedQuantityKeyTypeValue : FfiConverterRustB
     }
 }
 
-fun `combineIngredientLists`(
-    `lists`: List<Map<kotlin.String, Map<GroupedQuantityKey, Value>>>,
+fun `combineIngredients`(`ingredients`: List<Ingredient>): Map<kotlin.String, Map<GroupedQuantityKey, Value>> {
+    return FfiConverterMapStringMapTypeGroupedQuantityKeyTypeValue.lift(
+        uniffiRustCall { _status ->
+            UniffiLib.INSTANCE.uniffi_cooklang_bindings_fn_func_combine_ingredients(
+                FfiConverterSequenceTypeIngredient.lower(`ingredients`),
+                _status,
+            )
+        },
+    )
+}
+
+fun `combineIngredientsSelected`(
+    `ingredients`: List<Ingredient>,
+    `indices`: List<kotlin.UInt>,
 ): Map<kotlin.String, Map<GroupedQuantityKey, Value>> {
     return FfiConverterMapStringMapTypeGroupedQuantityKeyTypeValue.lift(
         uniffiRustCall { _status ->
-            UniffiLib.INSTANCE.uniffi_cooklang_bindings_fn_func_combine_ingredient_lists(
-                FfiConverterSequenceMapStringMapTypeGroupedQuantityKeyTypeValue.lower(`lists`),
+            UniffiLib.INSTANCE.uniffi_cooklang_bindings_fn_func_combine_ingredients_selected(
+                FfiConverterSequenceTypeIngredient.lower(`ingredients`),
+                FfiConverterSequenceUInt.lower(`indices`),
+                _status,
+            )
+        },
+    )
+}
+
+fun `derefComponent`(
+    `recipe`: CooklangRecipe,
+    `item`: Item,
+): Component {
+    return FfiConverterTypeComponent.lift(
+        uniffiRustCall { _status ->
+            UniffiLib.INSTANCE.uniffi_cooklang_bindings_fn_func_deref_component(
+                FfiConverterTypeCooklangRecipe.lower(`recipe`),
+                FfiConverterTypeItem.lower(`item`),
+                _status,
+            )
+        },
+    )
+}
+
+fun `derefCookware`(
+    `recipe`: CooklangRecipe,
+    `index`: kotlin.UInt,
+): Cookware {
+    return FfiConverterTypeCookware.lift(
+        uniffiRustCall { _status ->
+            UniffiLib.INSTANCE.uniffi_cooklang_bindings_fn_func_deref_cookware(
+                FfiConverterTypeCooklangRecipe.lower(`recipe`),
+                FfiConverterUInt.lower(`index`),
+                _status,
+            )
+        },
+    )
+}
+
+fun `derefIngredient`(
+    `recipe`: CooklangRecipe,
+    `index`: kotlin.UInt,
+): Ingredient {
+    return FfiConverterTypeIngredient.lift(
+        uniffiRustCall { _status ->
+            UniffiLib.INSTANCE.uniffi_cooklang_bindings_fn_func_deref_ingredient(
+                FfiConverterTypeCooklangRecipe.lower(`recipe`),
+                FfiConverterUInt.lower(`index`),
+                _status,
+            )
+        },
+    )
+}
+
+fun `derefTimer`(
+    `recipe`: CooklangRecipe,
+    `index`: kotlin.UInt,
+): Timer {
+    return FfiConverterTypeTimer.lift(
+        uniffiRustCall { _status ->
+            UniffiLib.INSTANCE.uniffi_cooklang_bindings_fn_func_deref_timer(
+                FfiConverterTypeCooklangRecipe.lower(`recipe`),
+                FfiConverterUInt.lower(`index`),
                 _status,
             )
         },

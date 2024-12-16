@@ -22,14 +22,11 @@ import androidx.compose.ui.unit.dp
 import org.cooklang.sample_app.ui.theme.CooklangSampleAppTheme
 import org.cooklang.parser.AisleConf
 import org.cooklang.parser.CooklangRecipe
-import org.cooklang.parser.combineIngredientLists
+import org.cooklang.parser.combineIngredients
 import org.cooklang.parser.parseAisleConfig
 import org.cooklang.parser.parseRecipe
 import org.cooklang.sync.run
 import java.io.File
-
-
-
 
 
 private val testRecipeOne = """
@@ -74,7 +71,7 @@ class MainActivity : ComponentActivity() {
             if (!recipesDirectory.exists()) {
                 recipesDirectory.mkdir()
             }
-            run(recipesDirectory.getAbsolutePath(), dbFile.getAbsolutePath(), "https://platform.cooklang.org/api", "hehe", 1, true)
+            run(recipesDirectory.getAbsolutePath(), dbFile.getAbsolutePath(), "https://cook.md/api", "hehe", 1, true)
         }
         thread.start()
 
@@ -133,19 +130,18 @@ class MainActivity : ComponentActivity() {
                     Divider()
 
                     if (recipeOne !== null && recipeTwo !== null && aisleConf !== null) {
-                        Text(text = "First step of Recipe 1: ${recipeOne!!.steps[0].toString()}: ")
+                        Text(text = "First step of Recipe 1: ${recipeOne!!.sections[0].blocks[0].toString()}: ")
 
                         Divider()
 
-                        Text(text = "First step of Recipe 2: ${recipeTwo!!.steps[0].toString()}: ")
+                        Text(text = "First step of Recipe 2: ${recipeTwo!!.sections[0].blocks[0].toString()}: ")
 
                         Divider()
 
                         Text(text = "Category for avocado: ${aisleConf!!.categoryFor("avocado")} ")
 
                         Divider()
-                        val listOfIngredients = listOf(recipeOne!!.ingredients, recipeOne!!.ingredients);
-                        val combined = combineIngredientLists(listOfIngredients);
+                        val combined = combineIngredients(recipeOne!!.ingredients + recipeTwo!!.ingredients);
                         Text(text = "Merged ingredients from Recipe 1 and Recipe 2: ${combined.toString()} ")
                     }
 
